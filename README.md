@@ -1,127 +1,114 @@
-# 🧠 MediMind
+# 🏥 MediMind - Your Digital Health Companion
 
-MediMind is an **online health companion** designed to help users track daily medicines, monitor mental and physical wellbeing, and quickly access all important health-related services in one place.  
+![Project Status](https://img.shields.io/badge/Status-Active_Development-green)
+![Tech Stack](https://img.shields.io/badge/Stack-SpringBoot_%7C_ReactJS-blue)
+![Course](https://img.shields.io/badge/Course-AOOP_Project-orange)
 
----
+## 📖 Project Overview
+**MediMind** is an online health companion designed to help users track daily medicines, monitor mental and physical well-being, and manage nutrition. 
 
-## 🚀 Features
-
-### 1. User Profile & Dashboard
-- User registration & login  
-- Basic health info (age, weight, allergies, conditions)  
-- Personalized dashboard showing:  
-  - Today’s medicines  
-  - Mood status  
-  - Logged symptoms  
-  - Daily tasks & reminders  
-  - Quick access to emergency contacts  
-
-### 2. Medicine Tracker & Reminder System
-- Add daily or weekly medicines  
-- Set dose & time  
-- Reminder notifications  
-- Track missed or taken doses  
-- View full medicine schedule  
-- Pharmacy suggestions for unavailable medicines  
-
-### 3. Mental Health Section
-- Mood tracker (select from mood list)  
-- Daily journal entry  
-- Mood history (weekly/monthly view)  
-- Basic mental health education (common disorders, symptoms)  
-- Remedies & coping techniques  
-- Psychologist search (location + contact info)  
-- Emergency hotline for mental health support  
-
-### 4. Physical Health Section
-- Input basic symptoms  
-- System shows possible symptom descriptions & common remedies (diet)  
-- Hospital search by name, department, or location  
-- Doctor directory (specialization + contact info)  
-
-### 5. Medical Directory
-- **Hospitals**: name, location, departments, contact numbers  
-- **Doctors**: name, specialization, hospital, visiting hours  
-- **Psychologists / Therapists**: expertise, chamber info, visiting hours  
-- **Pharmacies**: name, location, opening hours, medicine availability  
-- **Ambulances**: contact numbers, location-based availability  
-- **Blood Donation Centers**: info, emergency contacts, blood types available  
-- **Blood Donor List**: donor name, blood group, contact info, availability status  
-
-### 6. Pharmacy & Medicine Availability
-- Search medicine by name  
-- Show which pharmacy has it  
-- Show distance/location of pharmacy  
-- Alternative medicines list  
-
-### 7. Daily Health Logging
-- Track sleep hours  
-- Track water intake  
-- Daily energy level slider  
-
-### 8. Emergency Assistant
-- Emergency contacts list  
-- One-tap “Show emergency info”  
-- Hospital emergency numbers  
-- Ambulance numbers  
-- Blood donor emergency match  
-
-### 9. Gamification for Health Habits
-- Award points/badges for completing tasks like:  
-  - Drinking enough water  
-  - Taking medicines on time  
-  - Logging moods  
-
-### 10. Meal & Nutrition Manager
-- **Personalized Meal Planner**: based on calorie target, food preferences, allergies  
-- **Nutrition Tracking**: calories, protein, carbs, fats, sugar, sodium  
-- Daily summary + history trends  
-- Grocery list from selected recipes  
-- Hydration + food reminders  
-
-### 11. Data Visualization
-- Charts for mood trends  
-- Medicine adherence  
-- Sleep patterns  
-
-### 12. Community & Help
-- Basic first-aid guides  
-- Nutrition & lifestyle tips  
-- Stress-relief exercises  
-
-### 13. Settings & Data Management
-- Edit profile  
-- Edit health preferences  
-- Change notification settings  
+The system leverages **Java Spring Boot** for robust backend logic (including multi-threaded background tasks for reminders) and **ReactJS** for a dynamic, user-friendly frontend.
 
 ---
 
-## 🔮 Future Scope
+## 🚀 Key Features
+
+### 1. 👤 User Profile & Deep Personalization
+- Secure Registration & Login (JWT/Session).
+- **Deep Profile:** Stores age, weight, height, allergies, and chronic conditions.
+- **Data Persistence:** User preferences are saved and restored upon login.
+
+### 2. 💊 MyMedicine (Tracker & Reminder System)
+- **Schedule Management:** Add medicines with dosage and time.
+- **Smart Reminders (Threading):** A background daemon thread runs continuously on the server to check for upcoming or missed doses and triggers system alerts.
+- **Dashboard:** Visual view of "Today's Schedule" and "Upcoming."
+
+### 3. 🍎 MealMate (Nutrition Planner)
+- **Smart Suggestions:** Recommendations for Breakfast, Lunch, and Dinner based on health conditions (e.g., Diabetic-friendly filters).
+- **Macro Tracking:** Log meals to track daily Calories, Proteins, and Carbs.
+- **Hydration:** Water intake tracker.
+
+### 4. 🎮 Gamification & Mood Support
+- **Reward System:** Users earn **Points** and **Badges** (Bronze, Silver, Gold) for healthy habits.
+- **Empathy Engine:** Mood slider where users log emotions and receive comforting, logic-based messages from the system.
+
+### 5. 🔮 Future Scope
 - AI-powered health insights  
 - IoT integration with wearables & smart devices  
 
 ---
+## 🛠️ Technology Stack
 
-## 🛠️ Tech Stack (Planned)
-- **Backend**: Java / Spring Boot  
-- **Database**: MySQL  
-- **Frontend**: React / Type Script  
-- **APIs**: REST API design for modular services  
+| Component | Technology | Role in Project |
+|-----------|------------|-----------------|
+| **Frontend** | ReactJS | User Interface, Hooks, State Management |
+| **Networking** | Axios | Handling asynchronous REST API requests |
+| **Styling** | CSS / Tailwind | Responsive Design |
+| **Backend** | Java Spring Boot | REST Controllers, Service Logic |
+| **Database** | MySQL | Relational Data Storage |
+| **ORM** | Hibernate (JPA) | Object-Relational Mapping |
+| **Concurrency** | Java Threads | Background tasks (`ScheduledExecutorService`) |
+
+---
+
+## ⚙️ Installation & Setup Guide
+
+### Prerequisites
+*   Java JDK 17 or higher
+*   Node.js & npm
+*   MySQL Server
+
+### Step 1: Database Setup
+1.  Open MySQL Workbench/Shell.
+2.  Create the database:
+    ```sql
+    CREATE DATABASE medimind_db;
+    ```
+
+### Step 2: Backend Configuration
+1.  Navigate to the `backend` directory.
+2.  Open `src/main/resources/application.properties`.
+3.  Configure your database credentials:
+    ```properties
+    spring.datasource.url=jdbc:mysql://localhost:3306/medimind_db
+    spring.datasource.username=YOUR_MYSQL_USERNAME
+    spring.datasource.password=YOUR_MYSQL_PASSWORD
+    spring.jpa.hibernate.ddl-auto=update
+    ```
+4.  Run the Spring Boot Application:
+    ```bash
+    mvn spring-boot:run
+    ```
+
+### Step 3: Frontend Configuration
+1.  Navigate to the `frontend` directory.
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+3.  Start the React application:
+    ```bash
+    npm start
+    ```
+4.  Open your browser at `http://localhost:3000`.
+
+---
+
+## 🔗 API Endpoints Overview
+
+| Feature | Method | Endpoint | Description |
+|---------|--------|----------|-------------|
+| **Auth** | POST | `/api/auth/login` | Authenticate user |
+| **Profile** | GET | `/api/user/profile` | Fetch allergies & conditions |
+| **Medicine** | POST | `/api/medicine/add` | Schedule a new medicine |
+| **Medicine** | GET | `/api/medicine/today` | Get today's schedule |
+| **Nutrition** | GET | `/api/meals/suggest` | Get filtered meal plans |
+| **Gamification**| POST | `/api/mood/log` | Log mood & get response |
 
 ---
 
 ## 📊 Data Privacy
 MediMind is designed with **user privacy and security** in mind. Health data will be stored securely and only accessible to the user.  
-
----
-
-## 🤝 Contribution
-Contributions are welcome!  
-1. Fork the repo  
-2. Create a new branch  
-3. Commit your changes  
-4. Push to the branch  
-5. Create a Pull Request  
 
 ---
 
@@ -131,4 +118,4 @@ This project is licensed under the MIT License.
 ---
 
 ## 💡 Inspiration
-MediMind was created to make **health management simple, accessible, and engaging** by combining medicine tracking, mental health support, physical wellbeing, and emergency assistance into one platform.
+MediMind was created to **transform health management from a chore into an engaging habit**. By seamlessly combining **automated medicine tracking**, **intelligent nutrition planning (MealMate)**, and **gamified mental well-being**, we aim to provide a smart companion that not only tracks health but actively encourages a better lifestyle through personalized care.
