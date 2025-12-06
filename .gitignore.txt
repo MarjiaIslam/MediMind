@@ -1,0 +1,13 @@
+# Ignore Frontend Junk
+frontend/node_modules/
+frontend/build/
+frontend/.env
+
+# Ignore Backend Junk
+backend/target/
+backend/.mvn/
+backend/mvnw
+backend/mvnw.cmd
+backend/.idea/
+backend/.vscode/
+**/*.class
