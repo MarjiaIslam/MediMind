@@ -1,7 +1,7 @@
-package com.example.medimindbackend.controller;
+package com.medimind.backend.controller;
 
-import com.example.medimindbackend.model.User;
-import com.example.medimindbackend.repository.UserRepository;
+import com.medimind.backend.model.User;
+import com.medimind.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:3000") // Allow Frontend
+@CrossOrigin(origins = "http://localhost:5173") // Adjusted for Vite default port
 public class AuthController {
 
     @Autowired

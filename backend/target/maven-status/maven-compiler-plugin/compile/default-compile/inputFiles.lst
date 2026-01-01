@@ -1,0 +1,5 @@
+/workspaces/MediMind/backend/src/main/java/com/medimind/backend/repository/UserRepository.java
+/workspaces/MediMind/backend/src/main/java/com/medimind/backend/controller/AuthController.java
+/workspaces/MediMind/backend/src/main/java/com/medimind/backend/BackendApplication.java
+/workspaces/MediMind/backend/src/main/java/com/medimind/backend/model/User.java
+/workspaces/MediMind/backend/src/main/java/com/medimind/backend/config/SecurityConfig.java

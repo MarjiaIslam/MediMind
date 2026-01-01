@@ -1,0 +1,5 @@
+com/medimind/backend/config/SecurityConfig.class
+com/medimind/backend/controller/AuthController.class
+com/medimind/backend/model/User.class
+com/medimind/backend/BackendApplication.class
+com/medimind/backend/repository/UserRepository.class

@@ -1,6 +1,6 @@
-package com.example.medimindbackend.repository;
+package com.medimind.backend.repository;
 
-import com.example.medimindbackend.model.User;
+import com.medimind.backend.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
