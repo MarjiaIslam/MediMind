@@ -5,9 +5,7 @@
 ![Course](https://img.shields.io/badge/Course-AOOP_Project-orange)
 
 ## 📖 Project Overview
-**MediMind** is an online health companion designed to help users track daily medicines, monitor mental and physical well-being, and manage nutrition. 
-
-The system leverages **Java Spring Boot** for robust backend logic (including multi-threaded background tasks for reminders) and **ReactJS** for a dynamic, user-friendly frontend.
+**MediMind** is an online health companion designed to help users track daily medicines, monitor mental and physical well-being, and manage nutrition. The system leverages **Java Spring Boot** for robust backend logic (including multi-threaded background tasks for reminders) and **TypeScript** for a dynamic, user-friendly frontend.
 
 ---
 
@@ -58,27 +56,16 @@ The system leverages **Java Spring Boot** for robust backend logic (including mu
 *   Node.js & npm
 *   MySQL Server
 
-### Step 1: Database Setup
-1.  Open MySQL Workbench/Shell.
-2.  Create the database:
-    ```sql
-    CREATE DATABASE medimind_db;
-    ```
+### Step 2: Backend configuration
 
-### Step 2: Backend Configuration
-1.  Navigate to the `backend` directory.
-2.  Open `src/main/resources/application.properties`.
-3.  Configure your database credentials:
-    ```properties
-    spring.datasource.url=jdbc:mysql://localhost:3306/medimind_db
-    spring.datasource.username=YOUR_MYSQL_USERNAME
-    spring.datasource.password=YOUR_MYSQL_PASSWORD
-    spring.jpa.hibernate.ddl-auto=update
-    ```
-4.  Run the Spring Boot Application:
-    ```bash
-    mvn spring-boot:run
-    ```
+```bash
+cd backend
+mvn clean install
+mvn spring-boot:run
+```
+
+Backend will start on: `http://localhost:8080`
+
 
 ### Step 3: Frontend Configuration
 1.  Navigate to the `frontend` directory.
