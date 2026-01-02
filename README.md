@@ -1,7 +1,7 @@
 # 🏥 MediMind - Your Digital Health Companion
 
 ![Project Status](https://img.shields.io/badge/Status-Active_Development-green)
-![Tech Stack](https://img.shields.io/badge/Stack-SpringBoot_%7C_ReactJS-blue)
+[![Tech Stack](https://img.shields.io/badge/stack-Spring%20Boot%20%7C%20React%20TypeScript-blue)]()
 ![Course](https://img.shields.io/badge/Course-AOOP_Project-orange)
 
 ## 📖 Project Overview
