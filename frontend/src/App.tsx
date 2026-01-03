@@ -1,22 +1,28 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Auth from './Auth';
+import Dashboard from './Dashboard';
 
 function App() {
-  // Simple auth state check (User object in localStorage)
-  const [user, setUser] = useState(localStorage.getItem('user'));
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) setUser(JSON.parse(storedUser));
+  }, []);
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
+  };
 
   return (
-    <BrowserRouter>
+    <Router>
       <Routes>
-        <Route path="/" element={user ? <Navigate to="/dashboard"/> : <Navigate to="/login"/>} />
-        <Route path="/login" element={<Login setUser={setUser} />} />
-        <Route path="/register" element={<Register setUser={setUser} />} />
-        <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/login"/>} />
+        <Route path="/" element={!user ? <Auth setUser={setUser} /> : <Navigate to="/dashboard" />} />
+        <Route path="/dashboard" element={user ? <Dashboard user={user} logout={handleLogout} /> : <Navigate to="/" />} />
       </Routes>
-    </BrowserRouter>
-  )
+    </Router>
+  );
 }
 export default App;

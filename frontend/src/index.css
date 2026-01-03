@@ -3,5 +3,6 @@
 @tailwind utilities;
 
 body {
-  @apply bg-sage-100 text-gray-800;
+    background-color: #f4f7f5; /* Sage-50 */
+    font-family: 'Segoe UI', sans-serif;
 }

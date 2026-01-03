@@ -1,15 +1,14 @@
 {
   "name": "MediMind Stack",
-  "dockerComposeFile": "docker-compose.yml",
-  "service": "app",
-  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
   "features": {
     "ghcr.io/devcontainers/features/java:1": {
       "version": "17",
-      "installMaven": "true",
-      "installGradle": "false"
+      "jdkDistro": "ms"
     },
-    "ghcr.io/devcontainers/features/node:1": {}
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "18"
+    }
   },
   "customizations": {
     "vscode": {
@@ -20,5 +19,5 @@
       ]
     }
   },
-  "forwardPorts": [3000, 8080, 3306]
+  "postCreateCommand": "echo 'Environment Ready'"
 }
