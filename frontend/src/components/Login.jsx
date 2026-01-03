@@ -104,3 +104,4 @@ export default function Login() {
     </div>
   );
 }
+// Task #8: Login & Register Pages — saved 
