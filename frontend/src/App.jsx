@@ -1,20 +1,19 @@
-import { useState, useEffect } from 'react'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Register from './components/Register';
+import Login from './components/Login';
+import Dashboard from './components/Dashboard';
 
 function App() {
-  const [message, setMessage] = useState('')
-
-  useEffect(() => {
-    fetch('http://localhost:8080/api/hello')
-      .then(res => res.text())
-      .then(data => setMessage(data))
-      .catch(err => setMessage('Backend not reachable'))
-  }, [])
-
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <h1 className="text-2xl font-bold text-blue-600">{message}</h1>
-    </div>
-  )
+    <Router>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+      </Routes>
+    </Router>
+  );
 }
 
-export default App
+export default App;
