@@ -17,7 +17,7 @@ export default function Auth({ setUser }: AuthProps) {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const url = `http://localhost:8080/api/auth/${isLogin ? 'login' : 'register'}`;
+            const url = `/api/auth/${isLogin ? 'login' : 'register'}`;
             const payload = isLogin ? { identifier: formData.username, password: formData.password } : formData;
             const res = await axios.post(url, payload);
             setUser(res.data);
