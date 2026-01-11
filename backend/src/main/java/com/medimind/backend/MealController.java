@@ -2,8 +2,6 @@ package com.medimind.backend;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,52 +14,46 @@ public class MealController {
     @Autowired
     private MealService mealService;
 
-    @Autowired
-    private UserService userService;
-
-    private User getCurrentUser() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String email = ((UserDetails) principal).getUsername();
-        return userService.findByEmail(email);
-    }
-
-    public static class LogMealRequest {
-        private String mealType;
-        private String foodItems;
-        private String notes;
-
-        // Getters
-        public String getMealType() { return mealType; }
-        public void setMealType(String mealType) { this.mealType = mealType; }
-
-        public String getFoodItems() { return foodItems; }
-        public void setFoodItems(String foodItems) { this.foodItems = foodItems; }
-
-        public String getNotes() { return notes; }
-        public void setNotes(String notes) { this.notes = notes; }
-    }
-
+    // --- FIX 1: Log Meal now accepts userId from the URL ---
+    // Matches Frontend: /api/meals/log?userId=1
     @PostMapping("/log")
-    public ResponseEntity<?> logMeal(@RequestBody LogMealRequest request) {
+    public ResponseEntity<?> logMeal(@RequestBody Meal meal, @RequestParam Long userId) {
         try {
-            User user = getCurrentUser();
-            Meal meal = new Meal();
-            meal.setMealType(request.getMealType());
-            meal.setFoodItems(request.getFoodItems());
-            meal.setNotes(request.getNotes());
+            // Create a temporary user object with the ID
+            User user = new User();
+            user.setId(userId);
+            
+            // Link the meal to this user
             meal.setUser(user);
 
             Meal saved = mealService.logMeal(meal);
             return ResponseEntity.ok(saved);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body("Error logging meal: " + e.getMessage());
         }
     }
 
-    @GetMapping("/history")
-    public ResponseEntity<List<Meal>> getMealHistory() {
-        User user = getCurrentUser();
+    // --- FIX 2: Get History now accepts userId from the Path ---
+    // Matches Frontend: /api/meals/history/1
+    @GetMapping("/history/{userId}")
+    public ResponseEntity<List<Meal>> getMealHistory(@PathVariable Long userId) {
+        User user = new User();
+        user.setId(userId);
+        
         List<Meal> meals = mealService.getMealHistory(user);
         return ResponseEntity.ok(meals);
+    }
+
+    // --- FIX 3: Get Suggestions now accepts userId from the Path ---
+    // Matches Frontend: /api/meals/suggestions/1
+    @GetMapping("/suggestions/{userId}")
+    public ResponseEntity<List<Meal>> getSuggestions(@PathVariable Long userId) {
+        User user = new User();
+        user.setId(userId);
+
+        // Assuming your service has a method for suggestions
+        // If not, you might need to implement getSuggestions(user) in MealService
+        List<Meal> suggestions = mealService.getSuggestions(user); 
+        return ResponseEntity.ok(suggestions);
     }
 }
