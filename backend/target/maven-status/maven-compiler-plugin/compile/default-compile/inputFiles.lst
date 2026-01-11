@@ -1,4 +1,10 @@
+/workspaces/MediMind/backend/src/main/java/com/medimind/api/service/MealService.java
+/workspaces/MediMind/backend/src/main/java/com/medimind/api/controller/UserController.java
 /workspaces/MediMind/backend/src/main/java/com/medimind/api/MediMindApplication.java
 /workspaces/MediMind/backend/src/main/java/com/medimind/api/repository/UserRepository.java
+/workspaces/MediMind/backend/src/main/java/com/medimind/api/service/MealSuggestionService.java
+/workspaces/MediMind/backend/src/main/java/com/medimind/api/model/Meal.java
+/workspaces/MediMind/backend/src/main/java/com/medimind/api/controller/MealController.java
 /workspaces/MediMind/backend/src/main/java/com/medimind/api/model/User.java
+/workspaces/MediMind/backend/src/main/java/com/medimind/api/repository/MealRepository.java
 /workspaces/MediMind/backend/src/main/java/com/medimind/api/controller/AuthController.java

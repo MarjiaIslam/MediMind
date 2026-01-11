@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Auth from './Auth';
 import Dashboard from './Dashboard';
+import MealMate from './MealMate';
+import Profile from './Profile';
+import Hydration from './Hydration';
+import Badges from './Badges';
 
 function App() {
   const [user, setUser] = useState<any>(null);
@@ -20,9 +24,16 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={!user ? <Auth setUser={setUser} /> : <Navigate to="/dashboard" />} />
+        
+        {/* Protected Routes */}
         <Route path="/dashboard" element={user ? <Dashboard user={user} logout={handleLogout} /> : <Navigate to="/" />} />
+        <Route path="/meals" element={user ? <MealMate user={user} setUser={setUser} /> : <Navigate to="/" />} />
+        <Route path="/profile" element={user ? <Profile user={user} setUser={setUser} /> : <Navigate to="/" />} />
+        <Route path="/hydration" element={user ? <Hydration user={user} setUser={setUser} /> : <Navigate to="/" />} />
+        <Route path="/badges" element={user ? <Badges user={user} /> : <Navigate to="/" />} />
       </Routes>
     </Router>
   );
 }
+
 export default App;

@@ -1,4 +1,4 @@
-package com.medimind.backend;
+package com.medimind.api.model;
 
 import jakarta.persistence.*;
 import lombok.Data;

@@ -1,60 +1,148 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { HeartPulse } from 'lucide-react';
 
-interface AuthProps { setUser: (user: any) => void; }
+function Auth({ setUser }: { setUser: any }) {
+  const [isLogin, setIsLogin] = useState(true);
+  const [formData, setFormData] = useState({ username: '', email: '', password: '', confirmPassword: '' });
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-export default function Auth({ setUser }: AuthProps) {
-    const [isLogin, setIsLogin] = useState(true);
-    const navigate = useNavigate();
-    const [formData, setFormData] = useState({ fullName: '', username: '', email: '', password: '' });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    
+    if (!isLogin && formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match!');
+      return;
+    }
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+    try {
+      const url = `/api/auth/${isLogin ? 'login' : 'register'}`;
+      const payload = isLogin 
+        ? { identifier: formData.username, password: formData.password } 
+        : { username: formData.username, email: formData.email, password: formData.password };
+      
+      const res = await axios.post(url, payload);
+      setUser(res.data);
+      localStorage.setItem('user', JSON.stringify(res.data));
+      navigate('/dashboard');
+    } catch (error: any) {
+      if (error.response && error.response.status === 401) {
+        setError("Invalid Credentials! Please check your username or password.");
+      } else if (error.response && error.response.status === 400) {
+        setError(error.response.data?.message || "Username already exists!");
+      } else {
+        setError(isLogin ? "Account doesn't exist. Register first." : "Registration failed.");
+      }
+    }
+  };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            const url = `/api/auth/${isLogin ? 'login' : 'register'}`;
-            const payload = isLogin ? { identifier: formData.username, password: formData.password } : formData;
-            const res = await axios.post(url, payload);
-            setUser(res.data);
-            localStorage.setItem('user', JSON.stringify(res.data));
-            navigate('/dashboard');
-        } catch (err) { alert('Authentication failed. Please check your details.'); }
-    };
-
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-sage-50">
-            <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl border border-sage-100">
-                <div className="flex justify-center mb-6 text-sage-500">
-                    <HeartPulse size={48} />
-                </div>
-                <h2 className="text-3xl font-bold text-center text-sage-500 mb-2">
-                    {isLogin ? 'Welcome Back' : 'Start Your Journey'}
-                </h2>
-                <p className="text-center text-gray-400 mb-8">Your digital health companion</p>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    {!isLogin && (
-                        <>
-                            <input name="fullName" placeholder="Full Name" onChange={handleChange} className="w-full p-3 bg-sage-50 rounded-lg border-none focus:ring-2 focus:ring-lavender-400 outline-none" required />
-                            <input name="email" type="email" placeholder="Email" onChange={handleChange} className="w-full p-3 bg-sage-50 rounded-lg border-none focus:ring-2 focus:ring-lavender-400 outline-none" required />
-                        </>
-                    )}
-                    <input name="username" placeholder={isLogin ? "Username or Email" : "Username"} onChange={handleChange} className="w-full p-3 bg-sage-50 rounded-lg border-none focus:ring-2 focus:ring-lavender-400 outline-none" required />
-                    <input name="password" type="password" placeholder="Password" onChange={handleChange} className="w-full p-3 bg-sage-50 rounded-lg border-none focus:ring-2 focus:ring-lavender-400 outline-none" required />
-                    <button type="submit" className="w-full bg-sage-300 text-white font-bold p-3 rounded-lg hover:bg-sage-500 transition shadow-md">
-                        {isLogin ? 'Log In' : 'Create Account'}
-                    </button>
-                </form>
-                <div className="mt-6 text-center">
-                    <button onClick={() => setIsLogin(!isLogin)} className="text-lavender-600 font-semibold hover:underline">
-                        {isLogin ? "Don't have an account? Register" : "Already have an account? Login"}
-                    </button>
-                </div>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-sage-400 via-lavender-300 to-lavender-500 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+        <h1 className="text-4xl font-bold text-center mb-2 text-sage-700">MediMind</h1>
+        <p className="text-center text-lavender-700 mb-8 font-medium">Your Personal Health Companion</p>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {!isLogin && (
+            <>
+              <div>
+                <label className="block text-sage-700 font-medium mb-2">Email</label>
+                <input
+                  type="email"
+                  placeholder="your@email.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full px-4 py-2 border-2 border-lavender-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sage-700 font-medium mb-2">Username</label>
+                <input
+                  type="text"
+                  placeholder="Choose username"
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  className="w-full px-4 py-2 border-2 border-lavender-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-500"
+                  required
+                />
+              </div>
+            </>
+          )}
+          
+          {isLogin && (
+            <div>
+              <label className="block text-sage-700 font-medium mb-2">Username or Email</label>
+              <input
+                type="text"
+                placeholder="Enter username or email"
+                value={formData.username}
+                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                className="w-full px-4 py-2 border-2 border-lavender-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-500"
+                required
+              />
             </div>
+          )}
+          
+          <div>
+            <label className="block text-sage-700 font-medium mb-2">Password</label>
+            <input
+              type="password"
+              placeholder="Enter password"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              className="w-full px-4 py-2 border-2 border-lavender-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-500"
+              required
+            />
+          </div>
+
+          {!isLogin && (
+            <div>
+              <label className="block text-sage-700 font-medium mb-2">Confirm Password</label>
+              <input
+                type="password"
+                placeholder="Confirm password"
+                value={formData.confirmPassword}
+                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                className="w-full px-4 py-2 border-2 border-lavender-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-500"
+                required
+              />
+            </div>
+          )}
+          
+          {error && (
+            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 rounded">
+              {error}
+            </div>
+          )}
+          
+          <button
+            type="submit"
+            className="w-full bg-gradient-to-r from-sage-500 to-lavender-500 text-white py-2 rounded-lg font-semibold hover:from-sage-600 hover:to-lavender-600 transition"
+          >
+            {isLogin ? 'Login' : 'Register'}
+          </button>
+        </form>
+        
+        <div className="text-center mt-6">
+          <p className="text-sage-700">
+            {isLogin ? "Don't have an account? " : "Already have an account? "}
+            <button
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setError('');
+              }}
+              className="text-lavender-600 font-semibold hover:text-sage-600"
+            >
+              {isLogin ? 'Register' : 'Login'}
+            </button>
+          </p>
         </div>
-    );
+      </div>
+    </div>
+  );
 }
+
+export default Auth;

@@ -49,35 +49,25 @@
 
 ---
 
-## ⚙️ Installation & Setup Guide
+## ⚙️ How to Run
 
-### Prerequisites
-*   Java JDK 17 or higher
-*   Node.js & npm
-*   MySQL Server
-*   install dependencies:
-    ```bash
-    npm install
-    ```
-
-### Step 2: Backend configuration
-
+### Backend
 ```bash
 cd backend
 mvn spring-boot:run
 ```
-
 Backend will start on: `http://localhost:8080`
 
+### Frontend
+```bash
+cd frontend
+npm run dev
+```
+Frontend will start on: `http://localhost:5173`
 
-### Step 3: Frontend Configuration
-1.  Navigate to the `frontend` directory.
-2.  Start the React application:
-    ```bash
-    cd frontend
-    npm run dev
-    ```
-3.  Open your browser at `http://localhost:3000`.
+### Access the Application
+- **Frontend:** http://localhost:5173
+- **Backend API:** http://localhost:8080
 
 ---
 
