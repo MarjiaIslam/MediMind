@@ -16,12 +16,9 @@ public class Mood {
     private Long id;
 
     @Column(nullable = false)
-    private int moodRating; // 1 (sad) to 5 (happy)
+    private int moodRating;
 
-    @Column(nullable = false)
-    private String message; // user's optional note
-
-    @Column(nullable = false)
+    private String message;
     private LocalDate loggedDate;
 
     @ManyToOne

@@ -4,7 +4,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 
 @Service
 public class ReminderService {

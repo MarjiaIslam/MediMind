@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "medicines")
 @Data
@@ -17,19 +19,18 @@ public class Medicine {
     private String name;
 
     @Column(nullable = false)
-    private String dosage; // e.g., "500mg"
+    private String dosage;
 
     @Column(nullable = false)
-    private String frequency; // e.g., "twice daily"
+    private String frequency;
 
     @Column(nullable = false)
-    private String timeOfDay; // e.g., "morning, evening"
+    private String timeOfDay;
 
-    @Column(nullable = false)
     private boolean takenToday = false;
+    private LocalDateTime loggedAt;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 }
-// Task #9: Medicine Entity & APIs — saved

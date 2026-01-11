@@ -1,15 +1,13 @@
 package com.medimind.backend;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = "email"))
-@Data
+@Table(name = "users")
+@Data // ← THIS GENERATES ALL GETTERS/SETTERS
 @NoArgsConstructor
-@AllArgsConstructor
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,14 +16,18 @@ public class User {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false)
     private int age;
-    private double weight; // in kg
-    private String allergies; // e.g., "peanuts, shellfish"
-    private String chronicConditions; // e.g., "diabetes, asthma"
+
+    @Column(nullable = false)
+    private double weight;
+
+    private String allergies;
+    private String chronicConditions;
 }

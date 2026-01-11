@@ -160,19 +160,22 @@ export default function MealMate() {
           )}
         </div>
 
-        {/* Meal Suggestions */}
-        <div className="bg-white rounded-2xl shadow-lg p-6">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">Smart Meal Suggestions</h2>
-          {suggestions.length === 0 ? (
-            <p className="text-gray-600">No suggestions available.</p>
-          ) : (
-            <ul className="list-disc pl-5 space-y-1">
-              {suggestions.map((sug, index) => (
-                <li key={index}>{sug.name} ({sug.mealType})</li>
-              ))}
-            </ul>
-          )}
+       {/* Meal Suggestions */}
+<div className="bg-white rounded-2xl shadow-lg p-6">
+  <h2 className="text-2xl font-semibold text-gray-800 mb-4">Smart Meal Suggestions</h2>
+  {suggestions.length === 0 ? (
+    <p className="text-gray-600">No safe meal suggestions found. Try updating your allergies in Settings.</p>
+  ) : (
+    <div className="space-y-3">
+      {suggestions.map((suggestion, index) => (
+        <div key={index} className="p-3 bg-blue-50 rounded-lg">
+          <div className="font-medium">{suggestion.name}</div>
+          <div className="text-sm text-gray-600 capitalize">{suggestion.mealType}</div>
         </div>
+      ))}
+    </div>
+  )}
+</div>
       </div>
     </div>
   );

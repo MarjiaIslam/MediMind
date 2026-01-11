@@ -1,13 +1,23 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-export default function Login() {
+export default async function Login() {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const response = await fetch('/api/users/login', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(formData)
+});
+
+const data = await response.json();
+localStorage.setItem('token', data.token);      // ← store token
+localStorage.setItem('user', JSON.stringify(data.user));
+navigate('/dashboard');
 
   const handleChange = (e) => {
     setFormData({

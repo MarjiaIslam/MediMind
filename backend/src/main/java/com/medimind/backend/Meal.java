@@ -16,14 +16,12 @@ public class Meal {
     private Long id;
 
     @Column(nullable = false)
-    private String mealType; // e.g., "breakfast", "lunch"
+    private String mealType;
 
     @Column(nullable = false)
-    private String foodItems; // e.g., "oatmeal, banana"
+    private String foodItems;
 
     private String notes;
-
-    @Column(nullable = false)
     private LocalDateTime loggedAt;
 
     @ManyToOne

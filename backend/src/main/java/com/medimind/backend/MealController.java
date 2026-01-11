@@ -2,6 +2,8 @@ package com.medimind.backend;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,11 +16,21 @@ public class MealController {
     @Autowired
     private MealService mealService;
 
+    @Autowired
+    private UserService userService;
+
+    private User getCurrentUser() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String email = ((UserDetails) principal).getUsername();
+        return userService.findByEmail(email);
+    }
+
     public static class LogMealRequest {
         private String mealType;
         private String foodItems;
         private String notes;
 
+        // Getters
         public String getMealType() { return mealType; }
         public void setMealType(String mealType) { this.mealType = mealType; }
 
@@ -30,12 +42,9 @@ public class MealController {
     }
 
     @PostMapping("/log")
-    public ResponseEntity<?> logMeal(@RequestBody LogMealRequest request, @RequestParam Long userId) {
+    public ResponseEntity<?> logMeal(@RequestBody LogMealRequest request) {
         try {
-            // In a real app, fetch full user from DB
-            User user = new User();
-            user.setId(userId);
-
+            User user = getCurrentUser();
             Meal meal = new Meal();
             meal.setMealType(request.getMealType());
             meal.setFoodItems(request.getFoodItems());
@@ -49,10 +58,9 @@ public class MealController {
         }
     }
 
-    @GetMapping("/history/{userId}")
-    public ResponseEntity<List<Meal>> getMealHistory(@PathVariable Long userId) {
-        User user = new User();
-        user.setId(userId);
+    @GetMapping("/history")
+    public ResponseEntity<List<Meal>> getMealHistory() {
+        User user = getCurrentUser();
         List<Meal> meals = mealService.getMealHistory(user);
         return ResponseEntity.ok(meals);
     }

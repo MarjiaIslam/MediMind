@@ -1,10 +1,13 @@
 package com.medimind.backend;
-
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import lombok.Data;
+
 
 @RestController
 @RequestMapping("/api/medicines")
@@ -14,36 +17,20 @@ public class MedicineController {
     @Autowired
     private MedicineService medicineService;
 
-    public static class AddMedicineRequest {
-        private String name;
-        private String dosage;
-        private String frequency;
-        private String timeOfDay;
-        // getters/setters
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
-        public String getDosage() { return dosage; }
-        public void setDosage(String dosage) { this.dosage = dosage; }
-        public String getFrequency() { return frequency; }
-        public void setFrequency(String frequency) { this.frequency = frequency; }
-        public String getTimeOfDay() { return timeOfDay; }
-        public void setTimeOfDay(String timeOfDay) { this.timeOfDay = timeOfDay; }
+    @Autowired
+    private UserService userService;
+
+    private User getCurrentUser() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String email = ((UserDetails) principal).getUsername();
+        return userService.findByEmail(email);
     }
 
     @PostMapping("/add")
-    public ResponseEntity<?> addMedicine(@RequestBody AddMedicineRequest request, @RequestParam Long userId) {
+    public ResponseEntity<?> addMedicine(@RequestBody Medicine medicine) {
         try {
-            User user = new User();
-            user.setId(userId);
-
-            Medicine medicine = new Medicine();
-            medicine.setName(request.getName());
-            medicine.setDosage(request.getDosage());
-            medicine.setFrequency(request.getFrequency());
-            medicine.setTimeOfDay(request.getTimeOfDay());
-            medicine.setTakenToday(false);
+            User user = getCurrentUser();
             medicine.setUser(user);
-
             Medicine saved = medicineService.addMedicine(medicine);
             return ResponseEntity.ok(saved);
         } catch (Exception e) {
@@ -51,21 +38,21 @@ public class MedicineController {
         }
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Medicine>> getMedicines(@PathVariable Long userId) {
-        User user = new User();
-        user.setId(userId);
-        List<Medicine> medicines = medicineService.getMedicinesByUser(user);
-        return ResponseEntity.ok(medicines);
-    }
+  @GetMapping("/user")
+public ResponseEntity<List<Medicine>> getUserMedicines() {
+    User user = getCurrentUser();
+    List<Medicine> medicines = medicineService.getMedicinesByUser(user);
+    return ResponseEntity.ok(medicines);
+}
 
-    @PostMapping("/mark-taken/{id}")
-    public ResponseEntity<?> markTaken(@PathVariable Long id) {
-        try {
-            Medicine med = medicineService.markAsTaken(id);
-            return ResponseEntity.ok(med);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+@PostMapping("/mark-taken/{id}")
+public ResponseEntity<?> markAsTaken(@PathVariable Long id) {
+    try {
+        User user = getCurrentUser();
+        Medicine updated = medicineService.markAsTaken(id, user); // ← Now passes user
+        return ResponseEntity.ok(updated);
+    } catch (Exception e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
     }
+}
 }

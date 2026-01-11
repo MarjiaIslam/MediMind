@@ -35,12 +35,19 @@ export default function Register() {
 
    try {
   const response = await fetch('/api/users/register', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(formData)
-  });
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(formData)
+});
+
+if (!response.ok) {
+  const error = await response.text(); // Get error message from backend
+  setError(error || 'Registration failed. Please try again.');
+} else {
+  const data = await response.json();
+  localStorage.setItem('user', JSON.stringify(data));
+  navigate('/dashboard');
+};
 
   console.log('Response:', response); // ← Add this line
 

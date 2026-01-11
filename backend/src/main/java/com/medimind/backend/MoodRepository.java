@@ -7,6 +7,7 @@ import java.util.List;
 
 @Repository
 public interface MoodRepository extends JpaRepository<Mood, Long> {
+    List<Mood> findByUser(User user);
     List<Mood> findByUserOrderByLoggedDateDesc(User user);
     Mood findByUserAndLoggedDate(User user, LocalDate date);
 }
