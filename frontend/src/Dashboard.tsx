@@ -12,7 +12,7 @@ export default function Dashboard({ user, logout }: { user: any, logout: () => v
                     <Activity /> MediMind
                 </div>
                 <div className="flex items-center gap-6">
-                    <button onClick={() => navigate('/profile')} className="font-semibold text-gray-700 hover:text-sage-500">Hi, {user.fullName}</button>
+                    <button onClick={() => navigate('/profile')} className="font-semibold text-gray-700 hover:text-sage-500">Hi, {user.fullName || user.username}</button>
                     <button onClick={logout} className="text-red-400 text-sm hover:underline">Logout</button>
                 </div>
             </nav>

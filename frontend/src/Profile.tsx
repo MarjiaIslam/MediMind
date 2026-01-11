@@ -37,7 +37,7 @@ export default function Profile({ user, setUser }: { user: any, setUser: any }) 
                     <div className="space-y-4">
                         <div>
                             <label className="text-xs text-gray-400">Full Name</label>
-                            <input value={formData.fullName} disabled className="w-full p-2 bg-gray-100 rounded border-none" />
+                            <input type="text" value={formData.fullName || ''} onChange={e=>setFormData({...formData, fullName: e.target.value})} placeholder="Enter your full name" className="w-full p-2 border rounded" />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>

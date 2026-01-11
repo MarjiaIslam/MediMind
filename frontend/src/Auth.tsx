@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 function Auth({ setUser }: { setUser: any }) {
   const [isLogin, setIsLogin] = useState(true);
-  const [formData, setFormData] = useState({ username: '', email: '', password: '', confirmPassword: '' });
+  const [formData, setFormData] = useState({ username: '', email: '', password: '', confirmPassword: '', fullName: '' });
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -21,7 +21,7 @@ function Auth({ setUser }: { setUser: any }) {
       const url = `/api/auth/${isLogin ? 'login' : 'register'}`;
       const payload = isLogin 
         ? { identifier: formData.username, password: formData.password } 
-        : { username: formData.username, email: formData.email, password: formData.password };
+        : { username: formData.username, email: formData.email, password: formData.password, fullName: formData.fullName };
       
       const res = await axios.post(url, payload);
       setUser(res.data);
@@ -47,6 +47,17 @@ function Auth({ setUser }: { setUser: any }) {
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isLogin && (
             <>
+              <div>
+                <label className="block text-sage-700 font-medium mb-2">Full Name</label>
+                <input
+                  type="text"
+                  placeholder="Enter your full name"
+                  value={formData.fullName}
+                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                  className="w-full px-4 py-2 border-2 border-lavender-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-500"
+                  required
+                />
+              </div>
               <div>
                 <label className="block text-sage-700 font-medium mb-2">Email</label>
                 <input
