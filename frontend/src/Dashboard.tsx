@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Droplets, Activity, Trophy, Coffee, Utensils, Pill, User, Scale, Heart, X, Target, TrendingDown, TrendingUp, Flame, LogOut, AlertTriangle } from 'lucide-react';
+import { Droplets, Activity, Trophy, Coffee, Utensils, Pill, User, Scale, Heart, X, Target, TrendingDown, TrendingUp, Flame, LogOut, AlertTriangle, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -198,7 +198,7 @@ export default function Dashboard({ user, logout }: { user: any, logout: () => v
                 </div>
 
                 {/* Main Action Areas */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     
                     {/* Meal Card */}
                     <div onClick={() => navigate('/meals')} className="bg-gradient-to-br from-amber-400 to-orange-500 text-white rounded-2xl shadow-lg p-6 cursor-pointer transform hover:scale-105 hover:shadow-xl transition-all flex flex-col justify-center text-center">
@@ -212,6 +212,13 @@ export default function Dashboard({ user, logout }: { user: any, logout: () => v
                         <Pill className="mx-auto mb-4 opacity-90" size={48} />
                         <h3 className="text-2xl font-bold mb-2">Medicine Cabinet</h3>
                         <p className="opacity-90 text-sm">Track your medicines, set reminders, and never miss a dose.</p>
+                    </div>
+
+                    {/* Journal Card */}
+                    <div onClick={() => navigate('/journal')} className="bg-gradient-to-br from-purple-400 to-indigo-600 text-white rounded-2xl shadow-lg p-6 cursor-pointer transform hover:scale-105 hover:shadow-xl transition-all flex flex-col justify-center text-center">
+                        <BookOpen className="mx-auto mb-4 opacity-90" size={48} />
+                        <h3 className="text-2xl font-bold mb-2">Mood Journal</h3>
+                        <p className="opacity-90 text-sm">Express yourself, track your emotions, and reflect on your journey.</p>
                     </div>
                 </div>
 
@@ -306,7 +313,7 @@ export default function Dashboard({ user, logout }: { user: any, logout: () => v
                                 <h3 className="font-bold text-gray-700 flex items-center gap-2"><Scale size={18} /> Body Metrics</h3>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="bg-lavender-50 p-4 rounded-xl text-center">
-                                        <p className={`text-3xl font-bold ${getBmiColor(bmiInfo.category)}`}>{bmiInfo.bmi.toFixed(1)}</p>
+                                        <p className={`text-3xl font-bold ${getBmiColor(bmiInfo.category)}`}>{parseFloat(bmiInfo.bmi.toFixed(1))}</p>
                                         <p className="text-xs text-gray-500">BMI</p>
                                         <p className={`text-sm font-medium ${getBmiColor(bmiInfo.category)}`}>{bmiInfo.category}</p>
                                     </div>

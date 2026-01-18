@@ -7,6 +7,7 @@ import Profile from './Profile';
 import Hydration from './Hydration';
 import Badges from './Badges';
 import MyMedicine from './MyMedicine';
+import Journal from './Journal';
 
 function App() {
   const [user, setUser] = useState<any>(null);
@@ -33,6 +34,7 @@ function App() {
         <Route path="/profile" element={user ? <Profile user={user} setUser={setUser} /> : <Navigate to="/" />} />
         <Route path="/hydration" element={user ? <Hydration user={user} setUser={setUser} /> : <Navigate to="/" />} />
         <Route path="/badges" element={user ? <Badges user={user} setUser={setUser} /> : <Navigate to="/" />} />
+        <Route path="/journal" element={user ? <Journal user={user} setUser={setUser} /> : <Navigate to="/" />} />
       </Routes>
     </Router>
   );
