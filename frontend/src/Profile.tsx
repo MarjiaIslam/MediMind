@@ -244,45 +244,47 @@ export default function Profile({ user, setUser }: { user: any, setUser: any }) 
     };
 
     return (
-        <div className="min-h-screen bg-lavender-50 p-6">
-            <button onClick={() => navigate('/dashboard')} className="mb-4 text-lavender-600 font-bold">← Back to Dashboard</button>
+        <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 p-6">
+            <button onClick={() => navigate('/dashboard')} className="mb-4 text-purple-600 font-bold hover:text-purple-800 flex items-center gap-2 bg-white/50 px-4 py-2 rounded-xl hover:bg-white/80 transition">
+                ← Back to Dashboard
+            </button>
             
             {/* Profile Header */}
-            <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+            <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 rounded-2xl shadow-lg p-6 mb-6">
                 <div className="flex items-center gap-6">
                     {/* Profile Picture/Icon */}
                     <div className="relative">
-                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-lavender-300 to-sage-300 flex items-center justify-center overflow-hidden">
+                        <div className="w-28 h-28 rounded-full bg-white/20 backdrop-blur flex items-center justify-center overflow-hidden border-4 border-white/30 shadow-xl">
                             {formData.profilePicture ? (
                                 <img src={formData.profilePicture} alt="Profile" className="w-full h-full object-cover" />
                             ) : formData.profileIcon ? (
-                                <span className="text-5xl">{formData.profileIcon}</span>
+                                <span className="text-6xl">{formData.profileIcon}</span>
                             ) : (
-                                <User size={48} className="text-white" />
+                                <User size={56} className="text-white" />
                             )}
                         </div>
                         <div className="absolute -bottom-2 -right-2 flex gap-1">
-                            <label className="bg-lavender-400 text-white p-2 rounded-full cursor-pointer hover:bg-lavender-500">
-                                <Camera size={16} />
+                            <label className="bg-white text-purple-500 p-2 rounded-full cursor-pointer hover:bg-purple-100 shadow-lg transition-all hover:scale-110">
+                                <Camera size={18} />
                                 <input type="file" accept="image/*" onChange={handleProfilePictureUpload} className="hidden" />
                             </label>
                             <button 
                                 onClick={() => setShowIconPicker(!showIconPicker)}
-                                className="bg-sage-400 text-white p-2 rounded-full hover:bg-sage-500"
+                                className="bg-white text-pink-500 p-2 rounded-full hover:bg-pink-100 shadow-lg transition-all hover:scale-110"
                             >
                                 😊
                             </button>
                         </div>
                         {/* Icon Picker Dropdown */}
                         {showIconPicker && (
-                            <div className="absolute top-full mt-2 left-0 bg-white rounded-xl shadow-xl p-3 z-10 w-64">
-                                <p className="text-sm text-gray-500 mb-2">Choose an icon</p>
-                                <div className="grid grid-cols-8 gap-1">
+                            <div className="absolute top-full mt-2 left-0 bg-white rounded-2xl shadow-2xl p-4 z-10 w-72 border border-purple-100">
+                                <p className="text-sm font-medium text-gray-600 mb-3">Choose an icon</p>
+                                <div className="grid grid-cols-8 gap-2">
                                     {profileIcons.map(icon => (
                                         <button 
                                             key={icon}
                                             onClick={() => selectIcon(icon)}
-                                            className="text-2xl p-1 hover:bg-lavender-100 rounded"
+                                            className="text-2xl p-2 hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100 rounded-lg transition-all hover:scale-110"
                                         >
                                             {icon}
                                         </button>
@@ -291,39 +293,43 @@ export default function Profile({ user, setUser }: { user: any, setUser: any }) 
                             </div>
                         )}
                     </div>
-                    <div className="flex-1">
-                        <h1 className="text-2xl font-bold text-gray-800">{user.fullName || user.username}</h1>
-                        <p className="text-gray-500">@{user.username}</p>
-                        <p className="text-sm text-gray-400">{user.email}</p>
+                    <div className="flex-1 text-white">
+                        <h1 className="text-3xl font-bold">{user.fullName || user.username}</h1>
+                        <p className="text-white/80 text-lg">@{user.username}</p>
+                        <p className="text-white/60 text-sm mt-1">{user.email}</p>
+                        <div className="flex gap-3 mt-3">
+                            <span className="bg-white/20 backdrop-blur px-3 py-1 rounded-full text-sm">Level {user.level || 1}</span>
+                            <span className="bg-white/20 backdrop-blur px-3 py-1 rounded-full text-sm">🔥 {user.streak || 0} day streak</span>
+                        </div>
                     </div>
                     <button 
                         onClick={() => setActiveTab('settings')}
-                        className="p-3 bg-gray-100 rounded-full hover:bg-gray-200"
+                        className="p-4 bg-white/20 backdrop-blur rounded-2xl hover:bg-white/30 transition-all hover:scale-105"
                     >
-                        <Settings size={24} className="text-gray-600" />
+                        <Settings size={28} className="text-white" />
                     </button>
                 </div>
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-2 mb-6">
+            <div className="flex gap-3 mb-6">
                 <button 
                     onClick={() => setActiveTab('profile')}
-                    className={`px-4 py-2 rounded-lg font-medium ${activeTab === 'profile' ? 'bg-lavender-400 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
+                    className={`px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 ${activeTab === 'profile' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg' : 'bg-white text-gray-600 hover:bg-gray-100 shadow-md'}`}
                 >
-                    Profile
+                    👤 Profile
                 </button>
                 <button 
                     onClick={() => setActiveTab('journal')}
-                    className={`px-4 py-2 rounded-lg font-medium ${activeTab === 'journal' ? 'bg-lavender-400 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
+                    className={`px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 ${activeTab === 'journal' ? 'bg-gradient-to-r from-pink-500 to-orange-500 text-white shadow-lg' : 'bg-white text-gray-600 hover:bg-gray-100 shadow-md'}`}
                 >
-                    Mood Journal
+                    📔 Mood Journal
                 </button>
                 <button 
                     onClick={() => setActiveTab('settings')}
-                    className={`px-4 py-2 rounded-lg font-medium ${activeTab === 'settings' ? 'bg-lavender-400 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
+                    className={`px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 ${activeTab === 'settings' ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg' : 'bg-white text-gray-600 hover:bg-gray-100 shadow-md'}`}
                 >
-                    Settings
+                    ⚙️ Settings
                 </button>
             </div>
 
@@ -331,21 +337,26 @@ export default function Profile({ user, setUser }: { user: any, setUser: any }) 
             {activeTab === 'profile' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Edit Form */}
-                    <div className="bg-white p-6 rounded-2xl shadow-lg">
-                        <h3 className="font-bold text-lg mb-4 text-gray-700">Health Details</h3>
-                        <div className="space-y-4">
+                    <div className="bg-white p-6 rounded-2xl shadow-lg border border-purple-100">
+                        <h3 className="font-bold text-xl mb-6 flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center">
+                                <Heart size={20} className="text-white" />
+                            </div>
+                            <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Health Details</span>
+                        </h3>
+                        <div className="space-y-5">
                             <div>
-                                <label className="text-xs text-gray-400">Full Name</label>
-                                <input type="text" value={formData.fullName || ''} onChange={e=>setFormData({...formData, fullName: e.target.value})} placeholder="Enter your full name" className="w-full p-2 border rounded" />
+                                <label className="block text-sm font-medium text-purple-700 mb-2">Full Name</label>
+                                <input type="text" value={formData.fullName || ''} onChange={e=>setFormData({...formData, fullName: e.target.value})} placeholder="Enter your full name" className="w-full p-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:ring-2 focus:ring-purple-200 focus:outline-none" />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-xs text-gray-400">Age</label>
-                                    <input type="number" value={formData.age || ''} onChange={e=>setFormData({...formData, age: parseInt(e.target.value) || null})} placeholder="Age" className="w-full p-2 border rounded" />
+                                    <label className="block text-sm font-medium text-purple-700 mb-2">Age</label>
+                                    <input type="number" value={formData.age || ''} onChange={e=>setFormData({...formData, age: parseInt(e.target.value) || null})} placeholder="Age" className="w-full p-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:ring-2 focus:ring-purple-200 focus:outline-none" />
                                 </div>
                                 <div>
-                                    <label className="text-xs text-gray-400">Gender</label>
-                                    <select value={formData.gender || ''} onChange={e=>setFormData({...formData, gender: e.target.value})} className="w-full p-2 border rounded">
+                                    <label className="block text-sm font-medium text-purple-700 mb-2">Gender</label>
+                                    <select value={formData.gender || ''} onChange={e=>setFormData({...formData, gender: e.target.value})} className="w-full p-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:ring-2 focus:ring-purple-200 focus:outline-none">
                                         <option value="">Select</option>
                                         <option value="male">Male</option>
                                         <option value="female">Female</option>
@@ -355,27 +366,35 @@ export default function Profile({ user, setUser }: { user: any, setUser: any }) 
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-xs text-gray-400">Height (cm)</label>
-                                    <input type="number" value={formData.height || ''} onChange={e=>setFormData({...formData, height: parseFloat(e.target.value) || null})} className="w-full p-2 border rounded" />
+                                    <label className="block text-sm font-medium text-cyan-700 mb-2">Height (cm)</label>
+                                    <input type="number" value={formData.height || ''} onChange={e=>setFormData({...formData, height: parseFloat(e.target.value) || null})} className="w-full p-3 border-2 border-cyan-200 rounded-xl focus:border-cyan-400 focus:ring-2 focus:ring-cyan-200 focus:outline-none" />
                                 </div>
                                 <div>
-                                    <label className="text-xs text-gray-400">Weight (kg)</label>
-                                    <input type="number" value={formData.weight || ''} onChange={e=>setFormData({...formData, weight: parseFloat(e.target.value) || null})} className="w-full p-2 border rounded" />
+                                    <label className="block text-sm font-medium text-cyan-700 mb-2">Weight (kg)</label>
+                                    <input type="number" value={formData.weight || ''} onChange={e=>setFormData({...formData, weight: parseFloat(e.target.value) || null})} className="w-full p-3 border-2 border-cyan-200 rounded-xl focus:border-cyan-400 focus:ring-2 focus:ring-cyan-200 focus:outline-none" />
                                 </div>
                             </div>
                             <div>
-                                <label className="text-xs text-gray-400">Target Weight (kg)</label>
-                                <input type="number" value={formData.targetWeight || ''} onChange={e=>setFormData({...formData, targetWeight: parseFloat(e.target.value) || null})} placeholder="Your goal weight" className="w-full p-2 border rounded" />
+                                <label className="block text-sm font-medium text-emerald-700 mb-2">Target Weight (kg)</label>
+                                <input type="number" value={formData.targetWeight || ''} onChange={e=>setFormData({...formData, targetWeight: parseFloat(e.target.value) || null})} placeholder="Your goal weight" className="w-full p-3 border-2 border-emerald-200 rounded-xl focus:border-emerald-400 focus:ring-2 focus:ring-emerald-200 focus:outline-none" />
                             </div>
                             <div>
-                                <label className="text-xs text-gray-400">Allergies</label>
-                                <input placeholder="Peanuts, Shellfish, Seafood..." value={formData.allergies || ''} onChange={e=>setFormData({...formData, allergies: e.target.value})} className="w-full p-2 border rounded" />
+                                <label className="block text-sm font-medium text-orange-700 mb-2">Allergies</label>
+                                <input placeholder="Peanuts, Shellfish, Seafood..." value={formData.allergies || ''} onChange={e=>setFormData({...formData, allergies: e.target.value})} className="w-full p-3 border-2 border-orange-200 rounded-xl focus:border-orange-400 focus:ring-2 focus:ring-orange-200 focus:outline-none" />
                             </div>
                             <div>
-                                <label className="text-xs text-gray-400">Chronic Conditions</label>
-                                <div className="space-y-2">
+                                <label className="block text-sm font-medium text-rose-700 mb-2">Chronic Conditions</label>
+                                <div className="space-y-3">
                                     <div className="flex gap-2 flex-wrap mb-2">
-                                        {['Diabetes', 'Hypertension', 'Asthma', 'Heart Disease', 'Thyroid'].map(cond => (
+                                        {['Diabetes', 'Hypertension', 'Asthma', 'Heart Disease', 'Thyroid'].map((cond, idx) => {
+                                            const colors = [
+                                                'from-blue-400 to-indigo-500',
+                                                'from-red-400 to-pink-500',
+                                                'from-cyan-400 to-teal-500',
+                                                'from-rose-400 to-red-500',
+                                                'from-purple-400 to-violet-500'
+                                            ];
+                                            return (
                                             <button
                                                 key={cond}
                                                 onClick={() => {
@@ -386,23 +405,23 @@ export default function Profile({ user, setUser }: { user: any, setUser: any }) 
                                                         setFormData({...formData, conditions: [...current, cond].join(', ')});
                                                     }
                                                 }}
-                                                className={`px-3 py-1 rounded-full text-xs font-semibold transition ${formData.conditions?.includes(cond) ? 'bg-sage-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                                                className={`px-4 py-2 rounded-full text-sm font-semibold transition-all transform hover:scale-105 ${formData.conditions?.includes(cond) ? `bg-gradient-to-r ${colors[idx]} text-white shadow-md` : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                                             >
                                                 {cond}
                                             </button>
-                                        ))}
+                                        );})}
                                     </div>
                                     <input 
                                         type="text"
                                         placeholder="Or type custom conditions (comma-separated)"
                                         value={formData.conditions || ''} 
                                         onChange={e=>setFormData({...formData, conditions: e.target.value})} 
-                                        className="w-full p-2 border rounded" 
+                                        className="w-full p-3 border-2 border-rose-200 rounded-xl focus:border-rose-400 focus:ring-2 focus:ring-rose-200 focus:outline-none" 
                                     />
                                 </div>
                             </div>
-                            <button onClick={handleUpdate} className="w-full bg-lavender-400 text-white font-bold py-2 rounded hover:bg-lavender-600 transition">Save Changes</button>
-                            {msg && <p className="text-green-500 text-center text-sm">{msg}</p>}
+                            <button onClick={handleUpdate} className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 text-white font-bold py-3 rounded-xl hover:opacity-90 transition-all transform hover:scale-[1.02] shadow-lg">✨ Save Changes</button>
+                            {msg && <p className="text-emerald-600 text-center text-sm font-medium mt-2 p-2 bg-emerald-50 rounded-lg">{msg}</p>}
                         </div>
                     </div>
 
@@ -410,35 +429,39 @@ export default function Profile({ user, setUser }: { user: any, setUser: any }) 
                     <div className="space-y-6">
                         {/* BMI Card */}
                         {bmiInfo && (
-                            <div className="bg-white p-6 rounded-2xl shadow-lg">
-                                <h3 className="font-bold text-lg mb-4 text-gray-700 flex items-center gap-2">
-                                    <Scale size={20} /> BMI & Health Info
+                            <div className="bg-white p-6 rounded-2xl shadow-lg border border-purple-100 overflow-hidden relative">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-200/30 to-pink-200/30 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+                                <h3 className="font-bold text-xl mb-6 flex items-center gap-3 relative">
+                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-indigo-400 to-purple-400 flex items-center justify-center">
+                                        <Scale size={20} className="text-white" />
+                                    </div>
+                                    <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">BMI & Health Info</span>
                                 </h3>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="text-center p-4 bg-lavender-50 rounded-xl">
-                                        <p className={`text-4xl font-bold ${getBmiColor(bmiInfo.category)}`}>
+                                <div className="grid grid-cols-2 gap-4 relative">
+                                    <div className="text-center p-5 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl border-2 border-purple-200">
+                                        <p className={`text-5xl font-bold ${getBmiColor(bmiInfo.category)}`}>
                                             {bmiInfo.bmi.toFixed(1)}
                                         </p>
-                                        <p className={`text-sm font-medium ${getBmiColor(bmiInfo.category)}`}>
+                                        <p className={`text-sm font-bold mt-1 ${getBmiColor(bmiInfo.category)}`}>
                                             {bmiInfo.category}
                                         </p>
                                     </div>
-                                    <div className="text-center p-4 bg-sage-50 rounded-xl">
-                                        <p className="text-4xl font-bold text-sage-600">{bmiInfo.recommendedCalories}</p>
-                                        <p className="text-sm text-gray-500">Daily Calories</p>
+                                    <div className="text-center p-5 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-2xl border-2 border-emerald-200">
+                                        <p className="text-5xl font-bold text-emerald-600">{bmiInfo.recommendedCalories}</p>
+                                        <p className="text-sm font-medium text-emerald-700 mt-1">Daily Calories</p>
                                     </div>
                                 </div>
-                                <div className="mt-4 p-4 bg-gray-50 rounded-xl">
-                                    <p className="text-sm text-gray-600">
-                                        <strong>Ideal Weight Range:</strong> {bmiInfo.idealWeightMin.toFixed(1)} - {bmiInfo.idealWeightMax.toFixed(1)} kg
+                                <div className="mt-5 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
+                                    <p className="text-sm text-indigo-700 font-medium">
+                                        🎯 <strong>Ideal Weight Range:</strong> {bmiInfo.idealWeightMin.toFixed(1)} - {bmiInfo.idealWeightMax.toFixed(1)} kg
                                     </p>
                                     {bmiInfo.weightToLose > 0 && (
-                                        <p className="text-sm text-orange-600 mt-1">
+                                        <p className="text-sm text-orange-600 mt-2 font-medium bg-orange-50 p-2 rounded-lg">
                                             💪 To reach ideal: Lose {bmiInfo.weightToLose.toFixed(1)} kg
                                         </p>
                                     )}
                                     {bmiInfo.weightToGain > 0 && (
-                                        <p className="text-sm text-blue-600 mt-1">
+                                        <p className="text-sm text-blue-600 mt-2 font-medium bg-blue-50 p-2 rounded-lg">
                                             🍎 To reach ideal: Gain {bmiInfo.weightToGain.toFixed(1)} kg
                                         </p>
                                     )}
@@ -447,25 +470,32 @@ export default function Profile({ user, setUser }: { user: any, setUser: any }) 
                         )}
 
                         {/* Mood Tracker */}
-                        <div className="bg-white p-6 rounded-2xl shadow-lg">
-                            <h3 className="font-bold text-lg mb-4 text-gray-700">Empathy Engine</h3>
-                            <p className="mb-2 text-gray-500">How are you feeling today?</p>
-                            <div className="grid grid-cols-4 gap-2 mb-4">
+                        <div className="bg-white p-6 rounded-2xl shadow-lg border border-pink-100 overflow-hidden relative">
+                            <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-pink-200/30 to-orange-200/30 rounded-full -translate-y-1/2 -translate-x-1/2"></div>
+                            <h3 className="font-bold text-xl mb-2 flex items-center gap-3 relative">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-pink-400 to-orange-400 flex items-center justify-center">
+                                    <span className="text-xl">🧠</span>
+                                </div>
+                                <span className="bg-gradient-to-r from-pink-600 to-orange-600 bg-clip-text text-transparent">Empathy Engine</span>
+                            </h3>
+                            <p className="mb-4 text-gray-500 ml-13 relative">How are you feeling today?</p>
+                            <div className="grid grid-cols-4 gap-3 mb-4 relative">
                                 {moods.map(m => (
                                     <button key={m} onClick={() => setFormData({...formData, mood: m})} 
-                                        className={`text-2xl p-2 rounded-lg transition ${formData.mood === m ? 'bg-lavender-200 scale-110' : 'hover:bg-gray-100 grayscale opacity-50'}`}
+                                        className={`text-3xl p-3 rounded-xl transition-all transform ${formData.mood === m ? 'bg-gradient-to-br from-pink-200 to-orange-200 scale-110 shadow-md' : 'hover:bg-gray-100 hover:scale-105 grayscale opacity-60 hover:opacity-100 hover:grayscale-0'}`}
                                         title={m.split(' ')[0]}
                                     >
                                         {m.split(' ')[1]}
                                     </button>
                                 ))}
                             </div>
-                            <div className="bg-lavender-50 p-4 rounded-xl border border-lavender-200 text-center">
-                                <p className="text-lavender-600 font-serif italic text-lg">"{currentQuote}"</p>
+                            <div className="bg-gradient-to-r from-pink-50 to-orange-50 p-5 rounded-xl border-2 border-pink-200 text-center relative overflow-hidden">
+                                <div className="absolute top-0 right-0 text-6xl opacity-10">✨</div>
+                                <p className="text-pink-700 font-serif italic text-lg relative">"{currentQuote}"</p>
                             </div>
                             <button 
                                 onClick={() => setCurrentQuote(getRandomQuote(formData.mood || 'Happy 😊'))}
-                                className="mt-2 text-sm text-lavender-500 hover:text-lavender-700"
+                                className="mt-3 text-sm text-pink-500 hover:text-pink-700 font-medium transition-colors flex items-center gap-1 mx-auto"
                             >
                                 ↻ Get another quote
                             </button>
@@ -478,36 +508,36 @@ export default function Profile({ user, setUser }: { user: any, setUser: any }) 
             {activeTab === 'journal' && (
                 <div className="space-y-6">
                     {/* Search and Filter */}
-                    <div className="bg-white rounded-xl p-4 shadow-sm flex flex-wrap gap-3 items-center">
-                        <div className="flex-1 flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2">
-                            <Search size={18} className="text-gray-400" />
+                    <div className="bg-white rounded-2xl p-5 shadow-lg border border-purple-100 flex flex-wrap gap-3 items-center">
+                        <div className="flex-1 flex items-center gap-2 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl px-4 py-3 border border-purple-200">
+                            <Search size={18} className="text-purple-400" />
                             <input 
                                 type="text" 
                                 placeholder="Search by keyword..." 
                                 value={journalSearch}
                                 onChange={e => setJournalSearch(e.target.value)}
                                 onKeyDown={e => e.key === 'Enter' && searchJournal()}
-                                className="bg-transparent outline-none flex-1"
+                                className="bg-transparent outline-none flex-1 text-purple-700 placeholder:text-purple-300"
                             />
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Calendar size={18} className="text-gray-400" />
+                        <div className="flex items-center gap-2 bg-gradient-to-r from-pink-50 to-orange-50 rounded-xl px-4 py-3 border border-pink-200">
+                            <Calendar size={18} className="text-pink-400" />
                             <input 
                                 type="date" 
                                 value={dateFilter}
                                 onChange={e => setDateFilter(e.target.value)}
-                                className="p-2 border rounded-lg"
+                                className="bg-transparent outline-none text-pink-700"
                             />
                         </div>
-                        <button onClick={searchJournal} className="bg-lavender-400 text-white px-4 py-2 rounded-lg hover:bg-lavender-500">
-                            Search
+                        <button onClick={searchJournal} className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-5 py-3 rounded-xl hover:opacity-90 transition-all font-medium shadow-md hover:scale-105 transform">
+                            🔍 Search
                         </button>
-                        <button onClick={() => { setJournalSearch(''); setDateFilter(''); fetchJournal(); }} className="text-gray-500 hover:text-gray-700">
-                            Clear
+                        <button onClick={() => { setJournalSearch(''); setDateFilter(''); fetchJournal(); }} className="text-gray-500 hover:text-purple-600 font-medium transition-colors">
+                            ✕ Clear
                         </button>
                         <button 
                             onClick={() => setShowJournalForm(true)}
-                            className="bg-sage-400 text-white px-4 py-2 rounded-lg hover:bg-sage-500 flex items-center gap-2"
+                            className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-5 py-3 rounded-xl hover:opacity-90 transition-all font-medium shadow-md hover:scale-105 transform flex items-center gap-2"
                         >
                             <Plus size={18} /> New Entry
                         </button>
@@ -516,7 +546,7 @@ export default function Profile({ user, setUser }: { user: any, setUser: any }) 
                     {/* Journal Entries */}
                     <div className="space-y-4">
                         {journal.length > 0 ? journal.map(entry => (
-                            <div key={entry.id} className="bg-white rounded-xl p-5 shadow-sm">
+                            <div key={entry.id} className="bg-white rounded-2xl p-6 shadow-lg border border-purple-100 hover:shadow-xl transition-all hover:scale-[1.01] transform">
                                 <div className="flex justify-between items-start mb-3">
                                     <div>
                                         <h4 className="font-bold text-lg text-gray-800">{entry.title}</h4>
@@ -526,41 +556,44 @@ export default function Profile({ user, setUser }: { user: any, setUser: any }) 
                                             })}
                                         </p>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-2xl">{entry.mood?.split(' ')[1] || '😊'}</span>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-3xl">{entry.mood?.split(' ')[1] || '😊'}</span>
                                         <button 
                                             onClick={() => { setEditingEntry(entry); setNewEntry(entry); setShowJournalForm(true); }}
-                                            className="text-lavender-400 hover:text-lavender-600"
+                                            className="text-purple-400 hover:text-purple-600 font-medium transition-colors"
                                         >
-                                            Edit
+                                            ✏️ Edit
                                         </button>
                                         <button 
                                             onClick={() => deleteJournalEntry(entry.id)}
-                                            className="text-red-300 hover:text-red-500"
+                                            className="text-red-300 hover:text-red-500 transition-colors"
                                         >
                                             <Trash2 size={18} />
                                         </button>
                                     </div>
                                 </div>
-                                <p className="text-gray-600 whitespace-pre-wrap">{entry.content}</p>
+                                <p className="text-gray-600 whitespace-pre-wrap leading-relaxed">{entry.content}</p>
                                 {entry.tags && (
-                                    <div className="mt-3 flex flex-wrap gap-2">
-                                        {entry.tags.split(',').map((tag, i) => (
-                                            <span key={i} className="bg-lavender-100 text-lavender-600 px-2 py-1 rounded-full text-xs">
+                                    <div className="mt-4 flex flex-wrap gap-2">
+                                        {entry.tags.split(',').map((tag, i) => {
+                                            const tagColors = ['from-purple-400 to-pink-400', 'from-cyan-400 to-teal-400', 'from-orange-400 to-red-400', 'from-emerald-400 to-green-400', 'from-indigo-400 to-blue-400'];
+                                            return (
+                                            <span key={i} className={`bg-gradient-to-r ${tagColors[i % tagColors.length]} text-white px-3 py-1 rounded-full text-xs font-medium shadow-sm`}>
                                                 #{tag.trim()}
                                             </span>
-                                        ))}
+                                        );})}
                                     </div>
                                 )}
                             </div>
                         )) : (
-                            <div className="text-center py-10 text-gray-400">
-                                <p className="mb-4">No journal entries yet.</p>
+                            <div className="text-center py-16 bg-white rounded-2xl shadow-lg border border-purple-100">
+                                <div className="text-6xl mb-4">📔</div>
+                                <p className="mb-4 text-gray-500">No journal entries yet.</p>
                                 <button 
                                     onClick={() => setShowJournalForm(true)}
-                                    className="text-lavender-500 font-medium"
+                                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-xl font-medium hover:opacity-90 transition-all shadow-md hover:scale-105 transform"
                                 >
-                                    + Write your first entry
+                                    ✍️ Write your first entry
                                 </button>
                             </div>
                         )}
@@ -568,34 +601,34 @@ export default function Profile({ user, setUser }: { user: any, setUser: any }) 
 
                     {/* Journal Form Modal */}
                     {showJournalForm && (
-                        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                            <div className="bg-white rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
-                                <div className="flex justify-between items-center mb-4">
-                                    <h2 className="text-xl font-bold text-lavender-600">
-                                        {editingEntry ? 'Edit Entry' : 'New Journal Entry'}
+                        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                            <div className="bg-white rounded-3xl p-8 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl border border-purple-100">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent flex items-center gap-2">
+                                        {editingEntry ? '✏️ Edit Entry' : '✨ New Journal Entry'}
                                     </h2>
-                                    <button onClick={() => { setShowJournalForm(false); setEditingEntry(null); setNewEntry({ title: '', content: '', mood: 'Happy 😊', tags: '' }); }} className="text-gray-400 hover:text-gray-600">
+                                    <button onClick={() => { setShowJournalForm(false); setEditingEntry(null); setNewEntry({ title: '', content: '', mood: 'Happy 😊', tags: '' }); }} className="text-gray-400 hover:text-gray-600 transition-colors">
                                         <X size={24} />
                                     </button>
                                 </div>
-                                <div className="space-y-4">
+                                <div className="space-y-5">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                                        <label className="block text-sm font-medium text-purple-700 mb-2">Title</label>
                                         <input 
                                             value={newEntry.title}
                                             onChange={e => setNewEntry({...newEntry, title: e.target.value})}
                                             placeholder="Give your entry a title..."
-                                            className="w-full p-3 border rounded-lg"
+                                            className="w-full p-4 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:ring-2 focus:ring-purple-200 focus:outline-none"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">How are you feeling?</label>
+                                        <label className="block text-sm font-medium text-pink-700 mb-2">How are you feeling?</label>
                                         <div className="flex flex-wrap gap-2">
                                             {moods.map(m => (
                                                 <button 
                                                     key={m}
                                                     onClick={() => setNewEntry({...newEntry, mood: m})}
-                                                    className={`px-3 py-1 rounded-full text-sm ${newEntry.mood === m ? 'bg-lavender-400 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                                                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all transform hover:scale-105 ${newEntry.mood === m ? 'bg-gradient-to-r from-pink-500 to-orange-500 text-white shadow-md' : 'bg-gray-100 hover:bg-pink-100'}`}
                                                 >
                                                     {m}
                                                 </button>
@@ -603,29 +636,29 @@ export default function Profile({ user, setUser }: { user: any, setUser: any }) 
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">What's on your mind?</label>
+                                        <label className="block text-sm font-medium text-indigo-700 mb-2">What's on your mind?</label>
                                         <textarea 
                                             value={newEntry.content}
                                             onChange={e => setNewEntry({...newEntry, content: e.target.value})}
                                             placeholder="Write your thoughts..."
                                             rows={6}
-                                            className="w-full p-3 border rounded-lg resize-none"
+                                            className="w-full p-4 border-2 border-indigo-200 rounded-xl focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200 focus:outline-none resize-none"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Tags (comma separated)</label>
+                                        <label className="block text-sm font-medium text-teal-700 mb-2">Tags (comma separated)</label>
                                         <input 
                                             value={newEntry.tags}
                                             onChange={e => setNewEntry({...newEntry, tags: e.target.value})}
                                             placeholder="gratitude, work, health..."
-                                            className="w-full p-3 border rounded-lg"
+                                            className="w-full p-4 border-2 border-teal-200 rounded-xl focus:border-teal-400 focus:ring-2 focus:ring-teal-200 focus:outline-none"
                                         />
                                     </div>
                                     <button 
                                         onClick={saveJournalEntry}
-                                        className="w-full bg-gradient-to-r from-lavender-400 to-sage-400 text-white py-3 rounded-lg font-semibold hover:from-lavender-500 hover:to-sage-500"
+                                        className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white py-4 rounded-xl font-bold hover:opacity-90 transition-all transform hover:scale-[1.02] shadow-lg"
                                     >
-                                        {editingEntry ? 'Save Changes' : 'Save Entry'}
+                                        {editingEntry ? '💾 Save Changes' : '✨ Save Entry'}
                                     </button>
                                 </div>
                             </div>
@@ -636,47 +669,49 @@ export default function Profile({ user, setUser }: { user: any, setUser: any }) 
 
             {/* Settings Tab */}
             {activeTab === 'settings' && (
-                <div className="max-w-2xl mx-auto space-y-4">
+                <div className="max-w-2xl mx-auto space-y-6">
                     {/* Account Information */}
-                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                        <div className="p-4 border-b">
-                            <h3 className="font-bold text-lg text-gray-700">Account Information</h3>
+                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-purple-100">
+                        <div className="p-5 bg-gradient-to-r from-purple-500 to-indigo-500">
+                            <h3 className="font-bold text-lg text-white flex items-center gap-2">👤 Account Information</h3>
                         </div>
-                        <div className="p-4 space-y-4">
+                        <div className="p-6 space-y-5">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                                <label className="block text-sm font-medium text-purple-700 mb-2">Email Address</label>
                                 <input 
                                     type="email"
                                     value={formData.email || ''}
                                     onChange={e => setFormData({...formData, email: e.target.value})}
                                     placeholder="your@email.com"
-                                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-lavender-400 focus:outline-none"
+                                    className="w-full p-4 border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-300 focus:border-purple-400 focus:outline-none"
                                 />
-                                <p className="text-xs text-gray-500 mt-1">Used for account recovery and notifications</p>
+                                <p className="text-xs text-purple-500 mt-2">📧 Used for account recovery and notifications</p>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                                <label className="block text-sm font-medium text-purple-700 mb-2">Username</label>
                                 <input 
                                     type="text"
                                     value={formData.username || ''}
                                     disabled
-                                    className="w-full p-3 border rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
+                                    className="w-full p-4 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-500 cursor-not-allowed"
                                 />
-                                <p className="text-xs text-gray-500 mt-1">Username cannot be changed</p>
+                                <p className="text-xs text-gray-400 mt-2">🔒 Username cannot be changed</p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                        <div className="p-4 border-b">
-                            <h3 className="font-bold text-lg text-gray-700">Notification Settings</h3>
+                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-pink-100">
+                        <div className="p-5 bg-gradient-to-r from-pink-500 to-orange-500">
+                            <h3 className="font-bold text-lg text-white flex items-center gap-2">🔔 Notification Settings</h3>
                         </div>
-                        <div className="p-4 space-y-4">
-                            <div className="flex items-center justify-between">
+                        <div className="p-6 space-y-5">
+                            <div className="flex items-center justify-between p-4 bg-gradient-to-r from-pink-50 to-orange-50 rounded-xl border border-pink-100">
                                 <div className="flex items-center gap-3">
-                                    <Bell className="text-lavender-500" />
+                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-pink-400 to-orange-400 flex items-center justify-center">
+                                        <Bell className="text-white" size={20} />
+                                    </div>
                                     <div>
-                                        <p className="font-medium">Medicine Reminders</p>
+                                        <p className="font-semibold text-gray-800">Medicine Reminders</p>
                                         <p className="text-sm text-gray-500">Get notified for your scheduled medicines</p>
                                     </div>
                                 </div>
@@ -687,15 +722,15 @@ export default function Profile({ user, setUser }: { user: any, setUser: any }) 
                                         onChange={e => setFormData({...formData, notificationsEnabled: e.target.checked})}
                                         className="sr-only peer"
                                     />
-                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-lavender-400 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                                    <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-gradient-to-r peer-checked:from-pink-500 peer-checked:to-orange-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md"></div>
                                 </label>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Notification Sound</label>
+                                <label className="block text-sm font-medium text-pink-700 mb-2">🎵 Notification Sound</label>
                                 <select 
                                     value={formData.notificationSound || 'default'}
                                     onChange={e => setFormData({...formData, notificationSound: e.target.value})}
-                                    className="w-full p-3 border rounded-lg"
+                                    className="w-full p-4 border-2 border-pink-200 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-pink-400 focus:outline-none"
                                 >
                                     {notificationSounds.map(sound => (
                                         <option key={sound.id} value={sound.id}>{sound.name}</option>
@@ -705,63 +740,72 @@ export default function Profile({ user, setUser }: { user: any, setUser: any }) 
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                        <div className="p-4 border-b">
-                            <h3 className="font-bold text-lg text-gray-700">Account</h3>
+                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+                        <div className="p-5 bg-gradient-to-r from-gray-600 to-gray-800">
+                            <h3 className="font-bold text-lg text-white flex items-center gap-2">⚡ Quick Actions</h3>
                         </div>
                         <div className="divide-y">
                             <button 
                                 onClick={handleLogout}
-                                className="w-full p-4 flex items-center justify-between hover:bg-gray-50"
+                                className="w-full p-5 flex items-center justify-between hover:bg-gray-50 transition-colors group"
                             >
                                 <div className="flex items-center gap-3">
-                                    <LogOut className="text-gray-500" />
-                                    <span>Log Out</span>
+                                    <div className="w-10 h-10 rounded-xl bg-gray-100 group-hover:bg-gray-200 flex items-center justify-center transition-colors">
+                                        <LogOut className="text-gray-600" size={20} />
+                                    </div>
+                                    <span className="font-medium text-gray-700">Log Out</span>
                                 </div>
-                                <ChevronRight className="text-gray-400" />
+                                <ChevronRight className="text-gray-400 group-hover:translate-x-1 transition-transform" />
                             </button>
                             <button 
                                 onClick={() => setShowDeleteConfirm(true)}
-                                className="w-full p-4 flex items-center justify-between hover:bg-red-50 text-red-500"
+                                className="w-full p-5 flex items-center justify-between hover:bg-red-50 text-red-500 transition-colors group"
                             >
                                 <div className="flex items-center gap-3">
-                                    <Trash2 />
-                                    <span>Delete Account</span>
+                                    <div className="w-10 h-10 rounded-xl bg-red-100 group-hover:bg-red-200 flex items-center justify-center transition-colors">
+                                        <Trash2 size={20} />
+                                    </div>
+                                    <span className="font-medium">Delete Account</span>
                                 </div>
-                                <ChevronRight />
+                                <ChevronRight className="group-hover:translate-x-1 transition-transform" />
                             </button>
                         </div>
                     </div>
 
                     <button 
                         onClick={handleUpdate}
-                        className="w-full bg-lavender-400 text-white font-bold py-3 rounded-xl hover:bg-lavender-500"
+                        className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 text-white font-bold py-4 rounded-xl hover:opacity-90 transition-all transform hover:scale-[1.02] shadow-lg"
                     >
-                        Save All Settings
+                        ✨ Save All Settings
                     </button>
                 </div>
             )}
 
             {/* Delete Confirmation Modal */}
             {showDeleteConfirm && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl p-6 max-w-md w-full">
-                        <h2 className="text-xl font-bold text-red-600 mb-4">Delete Account?</h2>
-                        <p className="text-gray-600 mb-6">
-                            This action cannot be undone. All your data including medicines, meals, and journal entries will be permanently deleted.
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-red-100">
+                        <div className="text-center mb-6">
+                            <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+                                <Trash2 className="text-red-500" size={32} />
+                            </div>
+                            <h2 className="text-2xl font-bold text-red-600">Delete Account?</h2>
+                        </div>
+                        <p className="text-gray-600 mb-6 text-center leading-relaxed">
+                            This action <span className="font-bold text-red-500">cannot be undone</span>. All your data including medicines, meals, and journal entries will be permanently deleted.
                         </p>
-                        <div className="flex gap-3">
+                        <div className="flex gap-4">
                             <button 
                                 onClick={() => setShowDeleteConfirm(false)}
-                                className="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                                className="flex-1 py-3 border-2 border-gray-200 rounded-xl hover:bg-gray-50 font-medium transition-all"
                             >
                                 Cancel
                             </button>
                             <button 
                                 onClick={handleDeleteAccount}
-                                className="flex-1 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                                className="flex-1 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:opacity-90 font-medium transition-all shadow-lg"
                             >
-                                Delete Account
+                                🗑️ Delete
                             </button>
                         </div>
                     </div>

@@ -310,46 +310,64 @@ export default function Dashboard({ user, logout }: { user: any, logout: () => v
                         {/* BMI & Weight Goals */}
                         {bmiInfo && (
                             <div className="space-y-4 mb-6">
-                                <h3 className="font-bold text-gray-700 flex items-center gap-2"><Scale size={18} /> Body Metrics</h3>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="bg-lavender-50 p-4 rounded-xl text-center">
-                                        <p className={`text-3xl font-bold ${getBmiColor(bmiInfo.category)}`}>{parseFloat(bmiInfo.bmi.toFixed(1))}</p>
-                                        <p className="text-xs text-gray-500">BMI</p>
-                                        <p className={`text-sm font-medium ${getBmiColor(bmiInfo.category)}`}>{bmiInfo.category}</p>
+                                <h3 className="font-bold text-gray-700 flex items-center gap-2">
+                                    <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center">
+                                        <Scale size={16} className="text-white" />
                                     </div>
-                                    <div className="bg-sage-50 p-4 rounded-xl text-center">
-                                        <p className="text-3xl font-bold text-sage-600">{user.weight ? Math.round(user.weight) : '--'} kg</p>
-                                        <p className="text-xs text-gray-500">Current Weight</p>
+                                    Body Metrics
+                                </h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-gradient-to-br from-purple-100 via-pink-50 to-purple-100 p-5 rounded-2xl text-center border border-purple-200 shadow-sm hover:shadow-md transition-all">
+                                        <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center mx-auto mb-2">
+                                            <span className="text-white font-bold text-sm">BMI</span>
+                                        </div>
+                                        <p className={`text-4xl font-bold ${getBmiColor(bmiInfo.category)}`}>{parseFloat(bmiInfo.bmi.toFixed(1))}</p>
+                                        <p className={`text-sm font-semibold mt-1 px-3 py-1 rounded-full inline-block ${
+                                            bmiInfo.category === 'Normal' ? 'bg-green-100 text-green-600' :
+                                            bmiInfo.category === 'Underweight' ? 'bg-yellow-100 text-yellow-600' :
+                                            bmiInfo.category === 'Overweight' ? 'bg-orange-100 text-orange-600' :
+                                            'bg-red-100 text-red-600'
+                                        }`}>{bmiInfo.category}</p>
+                                    </div>
+                                    <div className="bg-gradient-to-br from-emerald-100 via-teal-50 to-emerald-100 p-5 rounded-2xl text-center border border-emerald-200 shadow-sm hover:shadow-md transition-all">
+                                        <div className="w-12 h-12 rounded-full bg-gradient-to-r from-emerald-400 to-teal-400 flex items-center justify-center mx-auto mb-2">
+                                            <span className="text-xl">⚖️</span>
+                                        </div>
+                                        <p className="text-4xl font-bold text-emerald-600">
+                                            {user.weight ? Math.round(user.weight) : '--'} <span className="text-xl">kg</span>
+                                        </p>
                                         {user.targetWeight && (
-                                            <p className="text-sm text-gray-600">Goal: {Math.round(user.targetWeight)} kg</p>
+                                            <p className="text-sm mt-2 bg-white/60 rounded-full px-3 py-1 text-emerald-700 font-medium">
+                                                🎯 Goal: {Math.round(user.targetWeight)} kg
+                                            </p>
                                         )}
                                     </div>
                                 </div>
                                 
                                 {/* Weight Goals */}
                                 {user.targetWeight && user.weight && (
-                                    <div className="bg-gray-50 p-4 rounded-xl">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <span className="text-sm text-gray-600 flex items-center gap-1">
-                                                <Target size={14} /> Weight Goal Progress
+                                    <div className="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 p-5 rounded-2xl border border-purple-200">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <span className="text-sm text-gray-700 font-medium flex items-center gap-2">
+                                                <Target size={16} className="text-purple-500" /> Weight Goal Progress
                                             </span>
-                                            <span className="text-sm font-medium">
+                                            <span className="text-sm font-bold">
                                                 {user.weight > user.targetWeight ? (
-                                                    <span className="text-orange-600 flex items-center gap-1">
+                                                    <span className="bg-gradient-to-r from-orange-400 to-red-400 text-white px-3 py-1 rounded-full flex items-center gap-1">
                                                         <TrendingDown size={14} /> {Math.round(user.weight - user.targetWeight)} kg to lose
                                                     </span>
                                                 ) : user.weight < user.targetWeight ? (
-                                                    <span className="text-purple-600 flex items-center gap-1">
+                                                    <span className="bg-gradient-to-r from-purple-400 to-indigo-400 text-white px-3 py-1 rounded-full flex items-center gap-1">
                                                         <TrendingUp size={14} /> {Math.round(user.targetWeight - user.weight)} kg to gain
                                                     </span>
                                                 ) : (
-                                                    <span className="text-green-600">🎉 Goal reached!</span>
+                                                    <span className="bg-gradient-to-r from-green-400 to-emerald-400 text-white px-3 py-1 rounded-full">🎉 Goal reached!</span>
                                                 )}
                                             </span>
                                         </div>
-                                        <div className="w-full bg-gray-200 rounded-full h-2">
+                                        <div className="w-full bg-white/60 rounded-full h-3 overflow-hidden shadow-inner">
                                             <div 
-                                                className="h-full bg-gradient-to-r from-sage-400 to-lavender-400 rounded-full"
+                                                className="h-full bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 rounded-full transition-all"
                                                 style={{ 
                                                     width: `${Math.min(100, Math.max(0, 
                                                         user.weight > user.targetWeight 
@@ -363,12 +381,23 @@ export default function Dashboard({ user, logout }: { user: any, logout: () => v
                                 )}
                                 
                                 {/* Healthy Range Info */}
-                                <div className="bg-gradient-to-r from-sage-50 to-emerald-50 p-4 rounded-xl text-sm border border-sage-200">
-                                    <p className="font-medium text-sage-700 mb-1">💡 Healthy Calorie Tips</p>
-                                    <ul className="text-sage-600 text-xs space-y-1">
-                                        <li>• Your recommended intake is based on your BMI and activity level</li>
-                                        <li>• Eat 200-500 fewer calories daily to lose ~0.5kg/week</li>
-                                        <li>• Add 300-500 calories to gain muscle mass healthily</li>
+                                <div className="bg-gradient-to-r from-amber-50 via-yellow-50 to-orange-50 p-5 rounded-2xl border border-amber-200">
+                                    <p className="font-bold text-amber-700 mb-2 flex items-center gap-2">
+                                        <span className="text-xl">💡</span> Healthy Calorie Tips
+                                    </p>
+                                    <ul className="text-amber-700 text-sm space-y-2">
+                                        <li className="flex items-start gap-2">
+                                            <span className="bg-amber-200 rounded-full w-5 h-5 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">1</span>
+                                            Your recommended intake is based on your BMI and activity level
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="bg-amber-200 rounded-full w-5 h-5 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">2</span>
+                                            Eat 200-500 fewer calories daily to lose ~0.5kg/week
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="bg-amber-200 rounded-full w-5 h-5 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">3</span>
+                                            Add 300-500 calories to gain muscle mass healthily
+                                        </li>
                                     </ul>
                                 </div>
                             </div>
