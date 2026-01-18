@@ -398,21 +398,66 @@ export default function MealMate({ user, setUser }: { user: any, setUser: any })
                                 No meals found matching your criteria. Try different selections.
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-4">
+                                {/* Allergy Warning Banner */}
+                                {suggestions.some(s => s.hasAllergyRisk) && (
+                                    <div className="bg-red-100 border-l-4 border-red-500 p-4 rounded-lg">
+                                        <div className="flex items-start gap-3">
+                                            <span className="text-2xl">⚠️</span>
+                                            <div>
+                                                <p className="font-bold text-red-700">Allergy Warning</p>
+                                                <p className="text-sm text-red-600">Some meal suggestions below may contain ingredients you're allergic to. Please check the warnings carefully.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {suggestions.map((meal, idx) => (
                                     <div
                                         key={idx}
-                                        className="bg-gradient-to-br from-sage-50 to-lavender-50 p-6 rounded-xl border-2 border-sage-200 hover:border-sage-400 transition"
+                                        className={`bg-gradient-to-br p-6 rounded-xl border-2 transition ${
+                                            meal.hasAllergyRisk 
+                                                ? 'from-red-50 to-orange-50 border-red-300 hover:border-red-400' 
+                                                : 'from-sage-50 to-lavender-50 border-sage-200 hover:border-sage-400'
+                                        }`}
                                     >
                                         <div className="flex justify-between items-start mb-3">
                                             <div className="flex-1">
-                                                <h4 className="text-lg font-bold text-sage-600 mb-1">{meal.name}</h4>
+                                                <h4 className="text-lg font-bold text-sage-600 mb-1 flex items-center gap-2">
+                                                    {meal.name}
+                                                    {meal.hasAllergyRisk && <span className="text-red-500">⚠️</span>}
+                                                </h4>
                                                 <p className="text-sm text-gray-600">{meal.description}</p>
                                             </div>
                                             <span className="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-sm font-bold whitespace-nowrap ml-2">
                                                 {meal.calories} kcal
                                             </span>
                                         </div>
+
+                                        {/* Allergy Warnings */}
+                                        {meal.allergyWarnings && meal.allergyWarnings.length > 0 && (
+                                            <div className="mb-3 bg-red-50 border border-red-200 rounded-lg p-3">
+                                                <p className="text-xs font-bold text-red-700 mb-1">⚠️ ALLERGY WARNING</p>
+                                                <ul className="text-xs text-red-600 space-y-1">
+                                                    {meal.allergyWarnings.map((warning: string, i: number) => (
+                                                        <li key={i}>• {warning}</li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
+
+                                        {/* Health Warnings */}
+                                        {meal.healthWarnings && meal.healthWarnings.length > 0 && (
+                                            <div className="mb-3 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                                                <p className="text-xs font-bold text-yellow-700 mb-1">⚡ Health Consideration</p>
+                                                <ul className="text-xs text-yellow-700 space-y-1">
+                                                    {meal.healthWarnings.map((warning: string, i: number) => (
+                                                        <li key={i}>• {warning}</li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
 
                                         <div className="mb-3 space-y-1">
                                             <p className="text-xs text-gray-600"><strong>Cuisine:</strong> {meal.cuisine}</p>
@@ -423,11 +468,17 @@ export default function MealMate({ user, setUser }: { user: any, setUser: any })
                                         <div className="mb-4 bg-white rounded-lg p-3">
                                             <div className="flex items-center justify-between mb-2">
                                                 <span className="text-xs font-semibold text-gray-700">Health Match</span>
-                                                <span className="text-sm font-bold text-green-600">{meal.compatibility}%</span>
+                                                <span className={`text-sm font-bold ${
+                                                    meal.compatibility >= 70 ? 'text-green-600' : 
+                                                    meal.compatibility >= 40 ? 'text-yellow-600' : 'text-red-600'
+                                                }`}>{meal.compatibility}%</span>
                                             </div>
                                             <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
                                                 <div
-                                                    className="bg-green-500 h-full"
+                                                    className={`h-full ${
+                                                        meal.compatibility >= 70 ? 'bg-green-500' : 
+                                                        meal.compatibility >= 40 ? 'bg-yellow-500' : 'bg-red-500'
+                                                    }`}
                                                     style={{ width: `${meal.compatibility}%` }}
                                                 />
                                             </div>
@@ -446,15 +497,27 @@ export default function MealMate({ user, setUser }: { user: any, setUser: any })
                                         </div>
 
                                         <button
-                                            onClick={() => handleLogSuggestion(meal.name)}
+                                            onClick={() => {
+                                                if (meal.hasAllergyRisk) {
+                                                    if (!confirm('⚠️ WARNING: This meal contains ingredients you may be allergic to. Are you sure you want to log this meal?')) {
+                                                        return;
+                                                    }
+                                                }
+                                                handleLogSuggestion(meal.name);
+                                            }}
                                             disabled={loading}
-                                            className="w-full bg-sage-500 text-white font-bold py-2 rounded-lg hover:bg-sage-600 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                                            className={`w-full font-bold py-2 rounded-lg transition disabled:opacity-50 flex items-center justify-center gap-2 ${
+                                                meal.hasAllergyRisk 
+                                                    ? 'bg-orange-500 hover:bg-orange-600 text-white' 
+                                                    : 'bg-sage-500 hover:bg-sage-600 text-white'
+                                            }`}
                                         >
                                             {loading ? <Loader className="animate-spin" size={16} /> : <Plus size={16} />}
-                                            Log This Meal
+                                            {meal.hasAllergyRisk ? 'Log Anyway (Caution)' : 'Log This Meal'}
                                         </button>
                                     </div>
                                 ))}
+                            </div>
                             </div>
                         )}
 

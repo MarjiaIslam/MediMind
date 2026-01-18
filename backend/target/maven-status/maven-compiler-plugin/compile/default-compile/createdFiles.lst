@@ -1,3 +1,4 @@
+com/medimind/api/controller/MedicineController.class
 com/medimind/api/model/Meal.class
 com/medimind/api/controller/MealController.class
 com/medimind/api/controller/UserController.class
@@ -6,7 +7,12 @@ com/medimind/api/service/MealSuggestionService.class
 com/medimind/api/service/MealService.class
 com/medimind/api/service/MealSuggestionService$MealSuggestion.class
 com/medimind/api/model/User.class
+com/medimind/api/repository/JournalRepository.class
 com/medimind/api/controller/AuthController.class
+com/medimind/api/controller/JournalController.class
 com/medimind/api/controller/MealController$MealRequest.class
+com/medimind/api/model/JournalEntry.class
 com/medimind/api/MediMindApplication.class
 com/medimind/api/repository/UserRepository.class
+com/medimind/api/repository/MedicineRepository.class
+com/medimind/api/model/Medicine.class

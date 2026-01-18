@@ -4,7 +4,8 @@
   "features": {
     "ghcr.io/devcontainers/features/java:1": {
       "version": "17",
-      "jdkDistro": "ms"
+      "jdkDistro": "ms",
+      "installMaven": true
     },
     "ghcr.io/devcontainers/features/node:1": {
       "version": "18"
@@ -15,9 +16,12 @@
       "extensions": [
         "vscjava.vscode-java-pack",
         "esbenp.prettier-vscode",
-        "rangav.vscode-thunder-client"
+        "rangav.vscode-thunder-client",
+        "dbaeumer.vscode-eslint",
+        "bradlc.vscode-tailwindcss"
       ]
     }
   },
-  "postCreateCommand": "echo 'Environment Ready'"
+  "forwardPorts": [8080, 5173],
+  "postCreateCommand": "cd frontend && npm install && cd ../backend && mvn dependency:resolve -q && echo 'Environment Ready! Run: Backend: cd backend && mvn spring-boot:run | Frontend: cd frontend && npm run dev'"
 }

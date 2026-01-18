@@ -9,47 +9,104 @@
 
 ---
 
+## 🚀 Quick Start
+
+### Prerequisites
+- Java 17+
+- Node.js 18+
+- Maven 3.8+
+
+### Running the Project
+
+**Backend (Terminal 1):**
+```bash
+cd backend
+mvn spring-boot:run
+```
+Backend runs at: http://localhost:8080
+
+**Frontend (Terminal 2):**
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Frontend runs at: http://localhost:5173
+
+### Using Dev Container (Recommended)
+If using VS Code with Dev Containers extension:
+1. Open the project in VS Code
+2. Click "Reopen in Container" when prompted
+3. Run the backend and frontend commands above
+
+---
+
 ## 🚀 Key Features
 
 ### 1. 👤 User Profile & Deep Personalization
-- Secure Registration & Login (JWT/Session).
-- **Deep Profile:** Stores age, weight, height, allergies, and chronic conditions.
-- **Data Persistence:** User preferences are saved and restored upon login.
+- Secure Registration & Login with email validation
+- **Profile Picture:** Upload custom image or choose from icon collection
+- **Deep Profile:** Age, weight, height, target weight, allergies, chronic conditions
+- **BMI Calculator:** Automatic BMI calculation with health category and recommended daily calories
+- **Settings:** Notification preferences, notification sounds, account management
+- **Delete Account:** Option to permanently delete account and all data
 
-### 2. 💊 MyMedicine (Tracker & Reminder System)
-- **Schedule Management:** Add medicines with dosage and time.
-- **Smart Reminders (Threading):** A background daemon thread runs continuously on the server to check for upcoming or missed doses and triggers system alerts.
-- **Dashboard:** Visual view of "Today's Schedule" and "Upcoming."
+### 2. 💊 MyMedicine (Advanced Tracker & Reminder System)
+- **Multi-Time Scheduling:** Add medicines with up to 3 times per day (e.g., 10 AM, 4 PM, 10 PM)
+- **Duration Tracking:** Set medication duration in days with start/end dates
+- **Today's Schedule:** Visual chart showing taken vs remaining doses
+- **Adherence Tracking:** Percentage of doses taken today
+- **Browser Notifications:** Get reminded when it's time to take medicine
+- **CRUD Operations:** Add, edit, and delete medicines easily
 
-### 3. 🍎 MealMate (Nutrition Planner)
-- **Smart Suggestions:** Recommendations for Breakfast, Lunch, and Dinner based on health conditions (e.g., Diabetic-friendly filters).
-- **Macro Tracking:** Log meals to track daily Calories, Proteins, and Carbs.
-- **Hydration:** Water intake tracker.
+### 3. 🍎 MealMate (Smart Nutrition Planner)
+- **Allergy Warnings:** ⚠️ Warns if meal contains allergens (seafood, nuts, dairy, gluten, etc.)
+- **Health Condition Filtering:** Recommendations consider diabetes, hypertension, heart conditions
+- **Smart Suggestions:** Based on selected ingredients and cuisine preferences
+- **Health Compatibility Score:** Shows how well a meal matches your health profile
+- **Macro Tracking:** Log meals to track daily calories
+- **Hydration:** Water intake tracker
 
-### 4. 🎮 Gamification & Mood Support
-- **Reward System:** Users earn **Points** and **Badges** (Bronze, Silver, Gold) for healthy habits.
-- **Empathy Engine:** Mood slider where users log emotions and receive comforting, logic-based messages from the system.
+### 4. 📔 Mood Journal
+- **Daily Diary:** Write and save journal entries with mood tracking
+- **Search Functionality:** Find entries by keyword or date
+- **Multiple Moods:** Happy, Stressed, Calm, Tired, Sad, Excited, Anxious, Grateful
+- **Random Quotes:** Different motivational messages each time based on mood
 
-### 5. 🔮 Future Scope
-- AI-powered health insights  
-- IoT integration with wearables & smart devices  
+### 5. 🎮 Gamification & Rewards
+- **Point System:** Earn points for healthy habits
+- **Level Progression:** Level up as you accumulate points
+- **Badges:** Bronze, Silver, Gold badges for achievements
+
+### 6. 📊 Health Dashboard
+- **BMI Display:** Current BMI with health category (Underweight/Normal/Overweight/Obese)
+- **Calorie Recommendations:** Daily calorie needs based on your profile
+- **Medicine Summary:** Today's medicine progress at a glance
+- **Ideal Weight Range:** Shows target weight range for your height
 
 ---
 ## 🛠️ Technology Stack
 
 | Component | Technology | Role in Project |
 |-----------|------------|-----------------|
-| **Frontend** | ReactJS | User Interface, Hooks, State Management |
+| **Frontend** | React 18 + TypeScript | User Interface, Hooks, State Management |
+| **Build Tool** | Vite | Fast development and building |
 | **Networking** | Axios | Handling asynchronous REST API requests |
-| **Styling** | CSS / Tailwind | Responsive Design |
-| **Backend** | Java Spring Boot | REST Controllers, Service Logic |
-| **Database** | MySQL | Relational Data Storage |
+| **Styling** | Tailwind CSS | Responsive Design with custom sage/lavender theme |
+| **Backend** | Java Spring Boot 3.2 | REST Controllers, Service Logic |
+| **Database** | H2 (dev) / MySQL (prod) | Data Storage |
 | **ORM** | Hibernate (JPA) | Object-Relational Mapping |
-| **Concurrency** | Java Threads | Background tasks (`ScheduledExecutorService`) |
+| **Validation** | Jakarta Validation | Input validation (email, password, etc.) |
 
 ---
 
 ## ⚙️ How to Run
+
+### Prerequisites
+- **Java 17+** - For the Spring Boot backend
+- **Maven 3.6+** - For building and running the backend
+- **Node.js 18+** - For the React frontend
+- **npm** - For managing frontend dependencies
 
 ### Backend
 ```bash
@@ -61,6 +118,7 @@ Backend will start on: `http://localhost:8080`
 ### Frontend
 ```bash
 cd frontend
+npm install    # First time only
 npm run dev
 ```
 Frontend will start on: `http://localhost:5173`

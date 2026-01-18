@@ -98,7 +98,7 @@ public class MealSuggestionService {
             return Integer.compare(score2, score1); // Higher score first
         });
 
-        // Convert to response format
+        // Convert to response format with allergy warnings
         List<Map<String, Object>> result = new ArrayList<>();
         for (MealSuggestion meal : filteredMeals) {
             Map<String, Object> mealMap = new HashMap<>();
@@ -110,10 +110,110 @@ public class MealSuggestionService {
             mealMap.put("dietaryFlags", meal.dietaryFlags);
             mealMap.put("healthScore", calculateHealthScore(meal, user));
             mealMap.put("compatibility", getCompatibilityPercentage(meal, user));
+            
+            // Add allergy warnings
+            List<String> warnings = getAllergyWarnings(meal, user);
+            mealMap.put("allergyWarnings", warnings);
+            mealMap.put("hasAllergyRisk", !warnings.isEmpty());
+            
+            // Add health condition warnings
+            List<String> healthWarnings = getHealthWarnings(meal, user);
+            mealMap.put("healthWarnings", healthWarnings);
+            
             result.add(mealMap);
         }
 
         return result;
+    }
+
+    /**
+     * Check for allergy warnings
+     */
+    private List<String> getAllergyWarnings(MealSuggestion meal, User user) {
+        List<String> warnings = new ArrayList<>();
+        if (user.getAllergies() == null || user.getAllergies().isEmpty()) return warnings;
+        
+        String allergies = user.getAllergies().toLowerCase();
+        String mealName = meal.name.toLowerCase();
+        String mealDesc = meal.description.toLowerCase();
+        String ingredient = meal.mainIngredient.toLowerCase();
+        
+        // Seafood allergies
+        if ((allergies.contains("seafood") || allergies.contains("fish") || allergies.contains("shellfish")) 
+            && (ingredient.equals("seafood") || mealName.contains("fish") || mealName.contains("salmon") 
+                || mealName.contains("hilsa") || mealName.contains("ceviche") || mealName.contains("ilish"))) {
+            warnings.add("⚠️ This dish contains seafood. You have a seafood allergy!");
+        }
+        
+        // Prawn/Shrimp allergy
+        if ((allergies.contains("prawn") || allergies.contains("shrimp"))
+            && (mealName.contains("prawn") || mealName.contains("shrimp") || mealDesc.contains("prawn"))) {
+            warnings.add("⚠️ This dish may contain prawns/shrimp. You have a prawn allergy!");
+        }
+        
+        // Nut allergies
+        if ((allergies.contains("nut") || allergies.contains("peanut"))
+            && (mealName.contains("nut") || mealDesc.contains("nut") || mealDesc.contains("peanut"))) {
+            warnings.add("⚠️ This dish may contain nuts. You have a nut allergy!");
+        }
+        
+        // Dairy allergies
+        if ((allergies.contains("dairy") || allergies.contains("milk") || allergies.contains("lactose"))
+            && (ingredient.equals("dairy") || mealName.contains("cheese") || mealName.contains("paneer") 
+                || mealDesc.contains("cream") || mealDesc.contains("cheese"))) {
+            warnings.add("⚠️ This dish contains dairy. You have a dairy/lactose allergy!");
+        }
+        
+        // Gluten allergies
+        if ((allergies.contains("gluten") || allergies.contains("wheat"))
+            && (ingredient.equals("grains") || mealName.contains("pasta") || mealName.contains("roti") 
+                || mealName.contains("bread") || mealDesc.contains("wheat"))) {
+            warnings.add("⚠️ This dish may contain gluten. You have a gluten allergy!");
+        }
+        
+        // Egg allergy
+        if (allergies.contains("egg") 
+            && (mealName.contains("egg") || mealDesc.contains("egg"))) {
+            warnings.add("⚠️ This dish contains eggs. You have an egg allergy!");
+        }
+        
+        return warnings;
+    }
+    
+    /**
+     * Check for health condition warnings
+     */
+    private List<String> getHealthWarnings(MealSuggestion meal, User user) {
+        List<String> warnings = new ArrayList<>();
+        if (user.getConditions() == null || user.getConditions().isEmpty()) return warnings;
+        
+        String conditions = user.getConditions().toLowerCase();
+        
+        // Diabetes warnings for high calorie/carb meals
+        if (conditions.contains("diabetes")) {
+            if (meal.calories > 500) {
+                warnings.add("⚠️ High calorie meal. Monitor your blood sugar levels.");
+            }
+            if (meal.mainIngredient.equals("Grains") && !meal.dietaryFlags.contains("diabetic-friendly")) {
+                warnings.add("⚠️ This meal is carb-heavy. Consider portion control.");
+            }
+        }
+        
+        // Hypertension warnings
+        if (conditions.contains("hypertension") || conditions.contains("high blood pressure")) {
+            if (!meal.dietaryFlags.contains("low-sodium")) {
+                warnings.add("💡 Consider asking for less salt/sodium in this dish.");
+            }
+        }
+        
+        // Heart disease warnings
+        if (conditions.contains("heart")) {
+            if (!meal.dietaryFlags.contains("low-fat") && meal.calories > 450) {
+                warnings.add("💡 This meal may be high in fat. Consider a lighter option.");
+            }
+        }
+        
+        return warnings;
     }
 
     /**
@@ -144,11 +244,27 @@ public class MealSuggestionService {
     private int calculateHealthScore(MealSuggestion meal, User user) {
         int score = 50; // Base score
 
-        // Check allergies
+        // Check allergies - significantly reduce score for allergen risk
         if (user.getAllergies() != null && !user.getAllergies().isEmpty()) {
             String allergies = user.getAllergies().toLowerCase();
-            // Reduce score if allergen risk (simplified check)
-            if (allergies.contains("nut") && meal.name.toLowerCase().contains("nut")) score -= 50;
+            String ingredient = meal.mainIngredient.toLowerCase();
+            String mealName = meal.name.toLowerCase();
+            
+            // Seafood allergy check
+            if ((allergies.contains("seafood") || allergies.contains("fish") || allergies.contains("shellfish"))
+                && (ingredient.equals("seafood") || mealName.contains("fish"))) {
+                score -= 80;
+            }
+            // Dairy allergy check
+            if ((allergies.contains("dairy") || allergies.contains("milk") || allergies.contains("lactose"))
+                && ingredient.equals("dairy")) {
+                score -= 80;
+            }
+            // Nut allergy check
+            if ((allergies.contains("nut") || allergies.contains("peanut"))
+                && mealName.contains("nut")) {
+                score -= 80;
+            }
         }
 
         // Check chronic conditions and provide compatible meals
@@ -158,10 +274,12 @@ public class MealSuggestionService {
             if (conditions.contains("diabetes")) {
                 if (meal.dietaryFlags.contains("diabetic-friendly")) score += 30;
                 if (meal.calories < 400) score += 10;
-            } else if (conditions.contains("hypertension")) {
+            }
+            if (conditions.contains("hypertension")) {
                 if (meal.dietaryFlags.contains("low-sodium")) score += 30;
                 if (meal.dietaryFlags.contains("low-fat")) score += 10;
-            } else if (conditions.contains("asthma")) {
+            }
+            if (conditions.contains("asthma")) {
                 if (meal.dietaryFlags.contains("low-fat")) score += 20;
             }
         }

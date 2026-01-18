@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface MedicineRepository extends JpaRepository<Medicine, Long> {
     List<Medicine> findByUserId(Long userId);
+    List<Medicine> findByUserIdAndActiveTrue(Long userId);
 }
