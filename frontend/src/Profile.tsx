@@ -637,6 +637,36 @@ export default function Profile({ user, setUser }: { user: any, setUser: any }) 
             {/* Settings Tab */}
             {activeTab === 'settings' && (
                 <div className="max-w-2xl mx-auto space-y-4">
+                    {/* Account Information */}
+                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                        <div className="p-4 border-b">
+                            <h3 className="font-bold text-lg text-gray-700">Account Information</h3>
+                        </div>
+                        <div className="p-4 space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                                <input 
+                                    type="email"
+                                    value={formData.email || ''}
+                                    onChange={e => setFormData({...formData, email: e.target.value})}
+                                    placeholder="your@email.com"
+                                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-lavender-400 focus:outline-none"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Used for account recovery and notifications</p>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                                <input 
+                                    type="text"
+                                    value={formData.username || ''}
+                                    disabled
+                                    className="w-full p-3 border rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Username cannot be changed</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
                         <div className="p-4 border-b">
                             <h3 className="font-bold text-lg text-gray-700">Notification Settings</h3>

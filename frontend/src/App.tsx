@@ -32,7 +32,7 @@ function App() {
         <Route path="/medicine" element={user ? <MyMedicine user={user} /> : <Navigate to="/" />} />
         <Route path="/profile" element={user ? <Profile user={user} setUser={setUser} /> : <Navigate to="/" />} />
         <Route path="/hydration" element={user ? <Hydration user={user} setUser={setUser} /> : <Navigate to="/" />} />
-        <Route path="/badges" element={user ? <Badges user={user} /> : <Navigate to="/" />} />
+        <Route path="/badges" element={user ? <Badges user={user} setUser={setUser} /> : <Navigate to="/" />} />
       </Routes>
     </Router>
   );

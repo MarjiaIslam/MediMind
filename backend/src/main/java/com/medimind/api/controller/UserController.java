@@ -44,6 +44,15 @@ public class UserController {
                     response.put("bmi", user.getBmi());
                     response.put("bmiCategory", user.getBmiCategory());
                     response.put("recommendedCalories", user.getRecommendedCalories());
+                    response.put("streak", user.getStreak());
+                    response.put("lastClaimDate", user.getLastClaimDate());
+                    response.put("totalWaterLogs", user.getTotalWaterLogs());
+                    response.put("totalMealsLogged", user.getTotalMealsLogged());
+                    response.put("perfectMedicineDays", user.getPerfectMedicineDays());
+                    response.put("perfectDays", user.getPerfectDays());
+                    response.put("morningLogs", user.getMorningLogs());
+                    response.put("eveningLogs", user.getEveningLogs());
+                    response.put("journalEntries", user.getJournalEntries());
                     return ResponseEntity.ok(response);
                 })
                 .orElse(ResponseEntity.notFound().build());
@@ -66,6 +75,17 @@ public class UserController {
                     existing.setConditions(updatedUser.getConditions());
                     existing.setMood(updatedUser.getMood());
                     existing.setWaterIntake(updatedUser.getWaterIntake());
+                    
+                    // Update streak and achievement tracking
+                    if (updatedUser.getStreak() >= 0) existing.setStreak(updatedUser.getStreak());
+                    if (updatedUser.getLastClaimDate() != null) existing.setLastClaimDate(updatedUser.getLastClaimDate());
+                    if (updatedUser.getPoints() > 0) existing.setPoints(updatedUser.getPoints());
+                    if (updatedUser.getLevel() != null) existing.setLevel(updatedUser.getLevel());
+                    
+                    // Update email if provided
+                    if (updatedUser.getEmail() != null && !updatedUser.getEmail().isEmpty()) {
+                        existing.setEmail(updatedUser.getEmail());
+                    }
                     
                     // Update profile settings
                     if (updatedUser.getProfilePicture() != null) existing.setProfilePicture(updatedUser.getProfilePicture());
@@ -103,6 +123,15 @@ public class UserController {
                     response.put("bmi", saved.getBmi());
                     response.put("bmiCategory", saved.getBmiCategory());
                     response.put("recommendedCalories", saved.getRecommendedCalories());
+                    response.put("streak", saved.getStreak());
+                    response.put("lastClaimDate", saved.getLastClaimDate());
+                    response.put("totalWaterLogs", saved.getTotalWaterLogs());
+                    response.put("totalMealsLogged", saved.getTotalMealsLogged());
+                    response.put("perfectMedicineDays", saved.getPerfectMedicineDays());
+                    response.put("perfectDays", saved.getPerfectDays());
+                    response.put("morningLogs", saved.getMorningLogs());
+                    response.put("eveningLogs", saved.getEveningLogs());
+                    response.put("journalEntries", saved.getJournalEntries());
                     
                     return ResponseEntity.ok(response);
                 })

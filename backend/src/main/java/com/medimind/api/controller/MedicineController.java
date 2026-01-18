@@ -29,57 +29,61 @@ public class MedicineController {
     public List<Map<String, Object>> getTodaysMedicines(@PathVariable Long userId) {
         List<Medicine> medicines = medicineRepository.findByUserIdAndActiveTrue(userId);
         LocalDate today = LocalDate.now();
+        List<Map<String, Object>> todayList = new ArrayList<>();
         
-        return medicines.stream()
-                .filter(med -> {
-                    if (med.getStartDate() == null) return true;
-                    if (med.getEndDate() != null && today.isAfter(med.getEndDate())) return false;
-                    return !today.isBefore(med.getStartDate());
-                })
-                .map(med -> {
-                    Map<String, Object> medMap = new HashMap<>();
-                    medMap.put("id", med.getId());
-                    medMap.put("name", med.getName());
-                    medMap.put("dosage", med.getDosage());
-                    medMap.put("notes", med.getNotes());
-                    
-                    // Build time slots
-                    List<Map<String, Object>> timeSlots = new ArrayList<>();
-                    if (med.getTime1() != null && !med.getTime1().isEmpty()) {
-                        timeSlots.add(Map.of("time", med.getTime1(), "taken", med.isTime1Taken(), "slot", 1));
-                    }
-                    if (med.getTime2() != null && !med.getTime2().isEmpty()) {
-                        timeSlots.add(Map.of("time", med.getTime2(), "taken", med.isTime2Taken(), "slot", 2));
-                    }
-                    if (med.getTime3() != null && !med.getTime3().isEmpty()) {
-                        timeSlots.add(Map.of("time", med.getTime3(), "taken", med.isTime3Taken(), "slot", 3));
-                    }
-                    // Fallback to legacy field
-                    if (timeSlots.isEmpty() && med.getTime() != null) {
-                        timeSlots.add(Map.of("time", med.getTime(), "taken", med.isTaken(), "slot", 0));
-                    }
-                    
-                    medMap.put("timeSlots", timeSlots);
-                    medMap.put("durationDays", med.getDurationDays());
-                    medMap.put("startDate", med.getStartDate());
-                    medMap.put("endDate", med.getEndDate());
-                    
-                    // Calculate days remaining
-                    if (med.getEndDate() != null) {
-                        long daysRemaining = java.time.temporal.ChronoUnit.DAYS.between(today, med.getEndDate());
-                        medMap.put("daysRemaining", Math.max(0, daysRemaining));
-                    }
-                    
-                    // Calculate completion status for today
-                    int totalSlots = timeSlots.size();
-                    int takenSlots = (int) timeSlots.stream().filter(ts -> (boolean) ts.get("taken")).count();
-                    medMap.put("totalDoses", totalSlots);
-                    medMap.put("takenDoses", takenSlots);
-                    medMap.put("allTaken", totalSlots > 0 && takenSlots == totalSlots);
-                    
-                    return medMap;
-                })
-                .collect(Collectors.toList());
+        for (Medicine med : medicines) {
+            if (med.getStartDate() != null && today.isBefore(med.getStartDate())) continue;
+            if (med.getEndDate() != null && today.isAfter(med.getEndDate())) continue;
+            
+            // Calculate days remaining
+            long daysRemaining = 0;
+            if (med.getEndDate() != null) {
+                daysRemaining = java.time.temporal.ChronoUnit.DAYS.between(today, med.getEndDate());
+            }
+            
+            // Add time slots as separate entries
+            if (med.getTime1() != null && !med.getTime1().isEmpty()) {
+                Map<String, Object> entry = new HashMap<>();
+                entry.put("medicineId", med.getId());
+                entry.put("medicineName", med.getName());
+                entry.put("dosage", med.getDosage() != null ? med.getDosage() : "");
+                entry.put("slot", 1);
+                entry.put("time", med.getTime1());
+                entry.put("taken", med.isTime1Taken());
+                entry.put("daysRemaining", Math.max(0, daysRemaining));
+                entry.put("takenAt", med.isTime1Taken() && med.getLastTakenAt() != null ? med.getLastTakenAt().toString() : null);
+                todayList.add(entry);
+            }
+            if (med.getTime2() != null && !med.getTime2().isEmpty()) {
+                Map<String, Object> entry = new HashMap<>();
+                entry.put("medicineId", med.getId());
+                entry.put("medicineName", med.getName());
+                entry.put("dosage", med.getDosage() != null ? med.getDosage() : "");
+                entry.put("slot", 2);
+                entry.put("time", med.getTime2());
+                entry.put("taken", med.isTime2Taken());
+                entry.put("daysRemaining", Math.max(0, daysRemaining));
+                entry.put("takenAt", med.isTime2Taken() && med.getLastTakenAt() != null ? med.getLastTakenAt().toString() : null);
+                todayList.add(entry);
+            }
+            if (med.getTime3() != null && !med.getTime3().isEmpty()) {
+                Map<String, Object> entry = new HashMap<>();
+                entry.put("medicineId", med.getId());
+                entry.put("medicineName", med.getName());
+                entry.put("dosage", med.getDosage() != null ? med.getDosage() : "");
+                entry.put("slot", 3);
+                entry.put("time", med.getTime3());
+                entry.put("taken", med.isTime3Taken());
+                entry.put("daysRemaining", Math.max(0, daysRemaining));
+                entry.put("takenAt", med.isTime3Taken() && med.getLastTakenAt() != null ? med.getLastTakenAt().toString() : null);
+                todayList.add(entry);
+            }
+        }
+        
+        // Sort by time
+        todayList.sort((a, b) -> ((String) a.get("time")).compareTo((String) b.get("time")));
+        
+        return todayList;
     }
 
     // Get medicine intake summary for today
@@ -120,6 +124,7 @@ public class MedicineController {
         summary.put("takenDoses", takenDoses);
         summary.put("remainingDoses", totalDoses - takenDoses);
         summary.put("completionPercentage", totalDoses > 0 ? (takenDoses * 100 / totalDoses) : 0);
+        summary.put("adherencePercentage", totalDoses > 0 ? (takenDoses * 100 / totalDoses) : 0);
         
         return summary;
     }

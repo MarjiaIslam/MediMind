@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Trash2, CheckCircle, Circle, Plus, Clock, Bell, Calendar, X, Edit2 } from 'lucide-react';
+import { Trash2, CheckCircle, Circle, Plus, Clock, Bell, Calendar, X, Edit2, Activity } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface Medicine {
@@ -17,6 +17,9 @@ interface Medicine {
     startDate: string;
     endDate: string;
     active: boolean;
+    time1TakenAt?: string;
+    time2TakenAt?: string;
+    time3TakenAt?: string;
 }
 
 interface TodayMedicine {
@@ -27,6 +30,7 @@ interface TodayMedicine {
     time: string;
     taken: boolean;
     daysRemaining: number;
+    takenAt?: string;
 }
 
 interface MedicineSummary {
@@ -174,14 +178,52 @@ export default function MyMedicine({ user }: { user: any }) {
         return 'text-red-500';
     };
 
+    // Calculate time difference between scheduled time and when taken
+    const getTimeDifference = (scheduledTime: string, takenAt?: string) => {
+        if (!takenAt) return null;
+        
+        const now = new Date();
+        const [schedHours, schedMins] = scheduledTime.split(':').map(Number);
+        const scheduledDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), schedHours, schedMins);
+        const takenDate = new Date(takenAt);
+        
+        // Get current time for comparison if taken today
+        const takenTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), takenDate.getHours(), takenDate.getMinutes());
+        
+        const diffMs = takenTime.getTime() - scheduledDate.getTime();
+        const diffMins = Math.abs(Math.round(diffMs / 60000));
+        
+        if (diffMins < 5) return { text: 'On time', color: 'text-green-500', icon: '✓' };
+        
+        const hours = Math.floor(diffMins / 60);
+        const mins = diffMins % 60;
+        
+        let timeText = '';
+        if (hours > 0 && mins > 0) {
+            timeText = `${hours}h ${mins}m`;
+        } else if (hours > 0) {
+            timeText = `${hours} hour${hours > 1 ? 's' : ''}`;
+        } else {
+            timeText = `${mins} min${mins > 1 ? 's' : ''}`;
+        }
+        
+        if (diffMs < 0) {
+            return { text: `${timeText} early`, color: 'text-blue-500', icon: '⏰' };
+        } else {
+            return { text: `${timeText} late`, color: 'text-orange-500', icon: '⏰' };
+        }
+    };
+
     return (
-        <div className="min-h-screen bg-sage-50 p-6">
-            <button onClick={() => navigate('/dashboard')} className="mb-4 text-sage-500 font-bold">← Back to Dashboard</button>
-            <h1 className="text-3xl font-bold text-sage-500 mb-6">💊 My Medicine Cabinet</h1>
+        <div className="min-h-screen bg-gradient-to-br from-sage-50 via-lavender-50 to-sage-100 p-6">
+            <button onClick={() => navigate('/dashboard')} className="mb-4 text-sage-600 font-bold hover:text-sage-800 flex items-center gap-2">
+                <Activity size={18} /> ← Back to Dashboard
+            </button>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-sage-600 to-lavender-600 bg-clip-text text-transparent mb-6">💊 My Medicine Cabinet</h1>
 
             {/* Summary Card */}
             {summary && (
-                <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+                <div className="bg-gradient-to-r from-white to-lavender-50 rounded-xl shadow-lg p-6 mb-6 border border-lavender-100">
                     <h2 className="text-lg font-semibold text-sage-600 mb-4">Today's Progress</h2>
                     <div className="flex items-center gap-6">
                         <div className="flex-1">
@@ -200,17 +242,17 @@ export default function MyMedicine({ user }: { user: any }) {
                         </div>
                     </div>
                     <div className="grid grid-cols-3 gap-4 mt-4 text-center">
-                        <div className="bg-sage-50 p-3 rounded-lg">
-                            <p className="text-2xl font-bold text-sage-600">{summary.totalMedicines}</p>
-                            <p className="text-xs text-gray-500">Active Medicines</p>
+                        <div className="bg-gradient-to-br from-sage-100 to-sage-200 p-3 rounded-lg border border-sage-200">
+                            <p className="text-2xl font-bold text-sage-700">{summary.totalMedicines}</p>
+                            <p className="text-xs text-sage-600 font-medium">Active Medicines</p>
                         </div>
-                        <div className="bg-green-50 p-3 rounded-lg">
-                            <p className="text-2xl font-bold text-green-600">{summary.takenDoses}</p>
-                            <p className="text-xs text-gray-500">Taken</p>
+                        <div className="bg-gradient-to-br from-green-100 to-emerald-200 p-3 rounded-lg border border-green-200">
+                            <p className="text-2xl font-bold text-green-700">{summary.takenDoses}</p>
+                            <p className="text-xs text-green-600 font-medium">Taken</p>
                         </div>
-                        <div className="bg-orange-50 p-3 rounded-lg">
-                            <p className="text-2xl font-bold text-orange-600">{summary.remainingDoses}</p>
-                            <p className="text-xs text-gray-500">Remaining</p>
+                        <div className="bg-gradient-to-br from-orange-100 to-amber-200 p-3 rounded-lg border border-orange-200">
+                            <p className="text-2xl font-bold text-orange-700">{summary.remainingDoses}</p>
+                            <p className="text-xs text-orange-600 font-medium">Remaining</p>
                         </div>
                     </div>
                 </div>
@@ -240,19 +282,19 @@ export default function MyMedicine({ user }: { user: any }) {
             <div className="flex gap-2 mb-4">
                 <button 
                     onClick={() => setTab('today')}
-                    className={`px-4 py-2 rounded-lg font-medium transition ${tab === 'today' ? 'bg-sage-400 text-white' : 'bg-white text-sage-600 hover:bg-sage-100'}`}
+                    className={`px-4 py-2 rounded-lg font-medium transition ${tab === 'today' ? 'bg-gradient-to-r from-sage-400 to-sage-500 text-white shadow-md' : 'bg-white text-sage-600 hover:bg-sage-100 border border-sage-200'}`}
                 >
-                    Today's Schedule
+                    📅 Today's Schedule
                 </button>
                 <button 
                     onClick={() => setTab('all')}
-                    className={`px-4 py-2 rounded-lg font-medium transition ${tab === 'all' ? 'bg-sage-400 text-white' : 'bg-white text-sage-600 hover:bg-sage-100'}`}
+                    className={`px-4 py-2 rounded-lg font-medium transition ${tab === 'all' ? 'bg-gradient-to-r from-sage-400 to-sage-500 text-white shadow-md' : 'bg-white text-sage-600 hover:bg-sage-100 border border-sage-200'}`}
                 >
-                    All Medicines
+                    💊 All Medicines
                 </button>
                 <button 
                     onClick={() => setShowAddForm(true)}
-                    className="ml-auto bg-lavender-400 text-white px-4 py-2 rounded-lg font-medium hover:bg-lavender-500 flex items-center gap-2"
+                    className="ml-auto bg-gradient-to-r from-lavender-400 to-lavender-500 text-white px-4 py-2 rounded-lg font-medium hover:from-lavender-500 hover:to-lavender-600 flex items-center gap-2 shadow-md"
                 >
                     <Plus size={18} /> Add Medicine
                 </button>
@@ -408,46 +450,55 @@ export default function MyMedicine({ user }: { user: any }) {
             {tab === 'today' && (
                 <div className="space-y-3">
                     {todayMeds.length > 0 ? (
-                        todayMeds.map((med, idx) => (
-                            <div 
-                                key={`${med.medicineId}-${med.slot}-${idx}`} 
-                                className={`flex justify-between items-center p-4 rounded-xl border transition ${
-                                    med.taken 
-                                        ? 'bg-sage-100 border-sage-200 opacity-70' 
-                                        : 'bg-white border-white shadow-sm'
-                                }`}
-                            >
-                                <div className="flex items-center gap-4">
-                                    <button 
-                                        onClick={() => toggleSlot(med.medicineId, med.slot)} 
-                                        className={med.taken ? "text-green-500" : "text-gray-300 hover:text-green-500"}
-                                    >
-                                        {med.taken ? <CheckCircle size={28}/> : <Circle size={28}/>}
-                                    </button>
-                                    <div>
-                                        <h3 className={`font-bold text-lg ${med.taken && 'line-through'}`}>{med.medicineName}</h3>
-                                        <p className="text-sm text-gray-500">
-                                            {med.dosage} • {formatTimeForDisplay(med.time)}
-                                            {med.daysRemaining > 0 && (
-                                                <span className="ml-2 text-lavender-600">
-                                                    ({med.daysRemaining} days left)
-                                                </span>
+                        todayMeds.map((med, idx) => {
+                            const timeDiff = med.taken ? getTimeDifference(med.time, med.takenAt || new Date().toISOString()) : null;
+                            return (
+                                <div 
+                                    key={`${med.medicineId}-${med.slot}-${idx}`} 
+                                    className={`flex justify-between items-center p-4 rounded-xl border-2 transition ${
+                                        med.taken 
+                                            ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200' 
+                                            : 'bg-white border-lavender-100 shadow-md hover:shadow-lg'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <button 
+                                            onClick={() => toggleSlot(med.medicineId, med.slot)} 
+                                            className={`transition-transform hover:scale-110 ${med.taken ? "text-green-500" : "text-gray-300 hover:text-green-500"}`}
+                                        >
+                                            {med.taken ? <CheckCircle size={32}/> : <Circle size={32}/>}
+                                        </button>
+                                        <div>
+                                            <h3 className={`font-bold text-lg ${med.taken ? 'line-through text-gray-400' : 'text-gray-800'}`}>{med.medicineName}</h3>
+                                            <p className="text-sm text-gray-500">
+                                                <span className="bg-lavender-100 text-lavender-700 px-2 py-0.5 rounded-full text-xs font-medium mr-2">{med.dosage}</span>
+                                                <span className="text-sage-600 font-medium">{formatTimeForDisplay(med.time)}</span>
+                                                {med.daysRemaining > 0 && (
+                                                    <span className="ml-2 text-lavender-600 text-xs">
+                                                        ({med.daysRemaining} days left)
+                                                    </span>
+                                                )}
+                                            </p>
+                                            {med.taken && timeDiff && (
+                                                <p className={`text-xs mt-1 font-medium ${timeDiff.color}`}>
+                                                    {timeDiff.icon} Taken {timeDiff.text}
+                                                </p>
                                             )}
-                                        </p>
+                                        </div>
+                                    </div>
+                                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${med.taken ? 'bg-green-100' : 'bg-sage-100'}`}>
+                                        <Clock size={16} className={med.taken ? 'text-green-500' : 'text-sage-500'} />
+                                        <span className={med.taken ? 'text-green-600 font-medium' : 'text-sage-600'}>{formatTimeForDisplay(med.time)}</span>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <Clock size={16} className="text-gray-400" />
-                                    <span className="text-gray-500">{formatTimeForDisplay(med.time)}</span>
-                                </div>
-                            </div>
-                        ))
+                            );
+                        })
                     ) : (
-                        <div className="text-center py-10">
+                        <div className="text-center py-10 bg-white rounded-xl border-2 border-dashed border-lavender-200">
                             <p className="text-gray-400 mb-4">No medicines scheduled for today.</p>
                             <button 
                                 onClick={() => setShowAddForm(true)}
-                                className="text-sage-500 font-medium hover:text-sage-600"
+                                className="text-lavender-500 font-medium hover:text-lavender-600"
                             >
                                 + Add your first medicine
                             </button>
@@ -463,34 +514,34 @@ export default function MyMedicine({ user }: { user: any }) {
                         medicines.map(med => (
                             <div 
                                 key={med.id} 
-                                className={`p-4 rounded-xl border transition ${
+                                className={`p-4 rounded-xl border-2 transition ${
                                     med.active 
-                                        ? 'bg-white border-white shadow-sm' 
-                                        : 'bg-gray-100 border-gray-200 opacity-60'
+                                        ? 'bg-white border-lavender-100 shadow-md hover:shadow-lg' 
+                                        : 'bg-gray-50 border-gray-200 opacity-60'
                                 }`}
                             >
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <h3 className="font-bold text-lg flex items-center gap-2">
-                                            {med.name}
+                                        <h3 className="font-bold text-lg flex items-center gap-2 text-gray-800">
+                                            💊 {med.name}
                                             {!med.active && (
-                                                <span className="text-xs bg-gray-300 text-gray-600 px-2 py-0.5 rounded">
+                                                <span className="text-xs bg-gray-300 text-gray-600 px-2 py-0.5 rounded-full">
                                                     Completed
                                                 </span>
                                             )}
                                         </h3>
-                                        <p className="text-sm text-gray-500">{med.dosage}</p>
+                                        <p className="text-sm text-lavender-600 font-medium">{med.dosage}</p>
                                     </div>
                                     <div className="flex gap-2">
                                         <button 
                                             onClick={() => setEditingMed(med)} 
-                                            className="text-lavender-400 hover:text-lavender-600"
+                                            className="text-lavender-400 hover:text-lavender-600 bg-lavender-50 p-2 rounded-lg transition hover:bg-lavender-100"
                                         >
                                             <Edit2 size={18} />
                                         </button>
                                         <button 
                                             onClick={() => deleteMed(med.id)} 
-                                            className="text-red-300 hover:text-red-500"
+                                            className="text-red-400 hover:text-red-600 bg-red-50 p-2 rounded-lg transition hover:bg-red-100"
                                         >
                                             <Trash2 size={18} />
                                         </button>
@@ -498,49 +549,49 @@ export default function MyMedicine({ user }: { user: any }) {
                                 </div>
                                 <div className="mt-3 flex flex-wrap gap-2">
                                     {med.time1 && (
-                                        <span className={`px-3 py-1 rounded-full text-sm flex items-center gap-1 ${
-                                            med.taken1 ? 'bg-green-100 text-green-700' : 'bg-sage-100 text-sage-700'
+                                        <span className={`px-3 py-1.5 rounded-full text-sm flex items-center gap-1 font-medium ${
+                                            med.taken1 ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border border-green-200' : 'bg-gradient-to-r from-sage-100 to-sage-200 text-sage-700 border border-sage-200'
                                         }`}>
-                                            <Clock size={12} /> {formatTimeForDisplay(med.time1)}
-                                            {med.taken1 && <CheckCircle size={12} />}
+                                            <Clock size={14} /> {formatTimeForDisplay(med.time1)}
+                                            {med.taken1 && <CheckCircle size={14} className="text-green-500" />}
                                         </span>
                                     )}
                                     {med.time2 && (
-                                        <span className={`px-3 py-1 rounded-full text-sm flex items-center gap-1 ${
-                                            med.taken2 ? 'bg-green-100 text-green-700' : 'bg-sage-100 text-sage-700'
+                                        <span className={`px-3 py-1.5 rounded-full text-sm flex items-center gap-1 font-medium ${
+                                            med.taken2 ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border border-green-200' : 'bg-gradient-to-r from-lavender-100 to-lavender-200 text-lavender-700 border border-lavender-200'
                                         }`}>
-                                            <Clock size={12} /> {formatTimeForDisplay(med.time2)}
-                                            {med.taken2 && <CheckCircle size={12} />}
+                                            <Clock size={14} /> {formatTimeForDisplay(med.time2)}
+                                            {med.taken2 && <CheckCircle size={14} className="text-green-500" />}
                                         </span>
                                     )}
                                     {med.time3 && (
-                                        <span className={`px-3 py-1 rounded-full text-sm flex items-center gap-1 ${
-                                            med.taken3 ? 'bg-green-100 text-green-700' : 'bg-sage-100 text-sage-700'
+                                        <span className={`px-3 py-1.5 rounded-full text-sm flex items-center gap-1 font-medium ${
+                                            med.taken3 ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border border-green-200' : 'bg-gradient-to-r from-amber-100 to-orange-100 text-amber-700 border border-amber-200'
                                         }`}>
-                                            <Clock size={12} /> {formatTimeForDisplay(med.time3)}
-                                            {med.taken3 && <CheckCircle size={12} />}
+                                            <Clock size={14} /> {formatTimeForDisplay(med.time3)}
+                                            {med.taken3 && <CheckCircle size={14} className="text-green-500" />}
                                         </span>
                                     )}
                                 </div>
-                                <div className="mt-2 flex items-center gap-4 text-xs text-gray-400">
-                                    <span className="flex items-center gap-1">
-                                        <Calendar size={12} /> {med.durationDays} days
+                                <div className="mt-3 flex items-center gap-4 text-xs text-gray-500 bg-gray-50 p-2 rounded-lg">
+                                    <span className="flex items-center gap-1 text-sage-600">
+                                        <Calendar size={14} /> {med.durationDays} days
                                     </span>
                                     {med.startDate && (
-                                        <span>Started: {new Date(med.startDate).toLocaleDateString()}</span>
+                                        <span className="text-lavender-600">Started: {new Date(med.startDate).toLocaleDateString()}</span>
                                     )}
                                     {med.endDate && (
-                                        <span>Ends: {new Date(med.endDate).toLocaleDateString()}</span>
+                                        <span className="text-orange-600">Ends: {new Date(med.endDate).toLocaleDateString()}</span>
                                     )}
                                 </div>
                             </div>
                         ))
                     ) : (
-                        <div className="text-center py-10">
+                        <div className="text-center py-10 bg-white rounded-xl border-2 border-dashed border-lavender-200">
                             <p className="text-gray-400 mb-4">No medicines added yet.</p>
                             <button 
                                 onClick={() => setShowAddForm(true)}
-                                className="text-sage-500 font-medium hover:text-sage-600"
+                                className="text-lavender-500 font-medium hover:text-lavender-600"
                             >
                                 + Add your first medicine
                             </button>

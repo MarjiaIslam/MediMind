@@ -201,4 +201,61 @@ public class MealController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    // Get calorie info for user
+    @GetMapping("/calories/{userId}")
+    public ResponseEntity<?> getCalorieInfo(@PathVariable Long userId) {
+        try {
+            Optional<User> userOpt = userRepository.findById(userId);
+            if (!userOpt.isPresent()) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            User user = userOpt.get();
+            List<Meal> todayMeals = mealService.getTodaysMeals(user);
+            
+            // Estimate calories based on food items (simple estimation)
+            int consumed = 0;
+            for (Meal meal : todayMeals) {
+                consumed += estimateMealCalories(meal);
+            }
+            
+            int goal = user.getRecommendedCalories();
+            if (goal <= 0) goal = user.getDailyCalorieGoal();
+            if (goal <= 0) goal = 2000;
+            
+            Map<String, Object> calorieInfo = new java.util.HashMap<>();
+            calorieInfo.put("consumed", consumed);
+            calorieInfo.put("remaining", Math.max(0, goal - consumed));
+            calorieInfo.put("goal", goal);
+            calorieInfo.put("meals", todayMeals.stream().map(m -> {
+                Map<String, Object> mealInfo = new java.util.HashMap<>();
+                mealInfo.put("name", m.getMealType() + ": " + m.getFoodItems());
+                mealInfo.put("calories", estimateMealCalories(m));
+                mealInfo.put("time", m.getLoggedAt() != null ? m.getLoggedAt().toString() : "");
+                return mealInfo;
+            }).collect(java.util.stream.Collectors.toList()));
+            
+            return ResponseEntity.ok(calorieInfo);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    
+    private int estimateMealCalories(Meal meal) {
+        // Simple calorie estimation based on meal type and food count
+        String mealType = meal.getMealType() != null ? meal.getMealType().toLowerCase() : "";
+        String foodItems = meal.getFoodItems() != null ? meal.getFoodItems() : "";
+        int itemCount = foodItems.isEmpty() ? 1 : foodItems.split(",").length;
+        
+        int baseCalories = switch (mealType) {
+            case "breakfast" -> 350;
+            case "lunch" -> 500;
+            case "dinner" -> 600;
+            case "snack" -> 150;
+            default -> 300;
+        };
+        
+        return baseCalories + (itemCount - 1) * 100;
+    }
 }

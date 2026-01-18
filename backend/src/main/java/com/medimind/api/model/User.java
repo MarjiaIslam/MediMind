@@ -54,6 +54,19 @@ public class User {
     private String level = "Bronze";
     private String mood = "Neutral"; // Happy, Sad, Tired, etc.
     
+    // Streak tracking
+    private int streak = 0;
+    private String lastClaimDate;
+    
+    // Activity tracking for achievements
+    private int totalWaterLogs = 0;
+    private int totalMealsLogged = 0;
+    private int perfectMedicineDays = 0;
+    private int perfectDays = 0;
+    private int morningLogs = 0;
+    private int eveningLogs = 0;
+    private int journalEntries = 0;
+    
     // Calculated BMI (transient - not stored)
     @Transient
     public double getBmi() {

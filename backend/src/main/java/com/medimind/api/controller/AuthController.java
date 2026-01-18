@@ -123,6 +123,15 @@ public class AuthController {
         response.put("bmi", user.getBmi());
         response.put("bmiCategory", user.getBmiCategory());
         response.put("recommendedCalories", user.getRecommendedCalories());
+        response.put("streak", user.getStreak());
+        response.put("lastClaimDate", user.getLastClaimDate());
+        response.put("totalWaterLogs", user.getTotalWaterLogs());
+        response.put("totalMealsLogged", user.getTotalMealsLogged());
+        response.put("perfectMedicineDays", user.getPerfectMedicineDays());
+        response.put("perfectDays", user.getPerfectDays());
+        response.put("morningLogs", user.getMorningLogs());
+        response.put("eveningLogs", user.getEveningLogs());
+        response.put("journalEntries", user.getJournalEntries());
         
         return ResponseEntity.ok(response);
     }

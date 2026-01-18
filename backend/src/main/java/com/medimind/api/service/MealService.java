@@ -25,6 +25,13 @@ public class MealService {
     public List<Meal> getMealHistory(User user) {
         return mealRepository.findByUserOrderByLoggedAtDesc(user);
     }
+    
+    // READ - Get today's meals for user
+    public List<Meal> getTodaysMeals(User user) {
+        LocalDateTime startOfDay = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0);
+        LocalDateTime endOfDay = startOfDay.plusDays(1);
+        return mealRepository.findByUserAndLoggedAtBetween(user, startOfDay, endOfDay);
+    }
 
     // READ - Get single meal by ID
     public Optional<Meal> getMealById(Long mealId) {
