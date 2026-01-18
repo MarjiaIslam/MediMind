@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Droplets, Activity, Trophy, Coffee, Utensils, Pill, User, Scale, Heart, X, Target, TrendingDown, TrendingUp, Flame } from 'lucide-react';
+import { Droplets, Activity, Trophy, Coffee, Utensils, Pill, User, Scale, Heart, X, Target, TrendingDown, TrendingUp, Flame, LogOut, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -30,6 +30,7 @@ export default function Dashboard({ user, logout }: { user: any, logout: () => v
     const [bmiInfo, setBmiInfo] = useState<BmiInfo | null>(null);
     const [showCaloriesModal, setShowCaloriesModal] = useState(false);
     const [calorieInfo, setCalorieInfo] = useState<CalorieInfo | null>(null);
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
     useEffect(() => {
         if (user?.id) {
@@ -104,9 +105,46 @@ export default function Dashboard({ user, logout }: { user: any, logout: () => v
                         </div>
                         {user.fullName || user.username}
                     </button>
-                    <button onClick={logout} className="text-red-400 text-sm hover:underline">Logout</button>
+                    <button 
+                        onClick={() => setShowLogoutConfirm(true)} 
+                        className="flex items-center gap-1 text-red-400 text-sm hover:text-red-500 transition"
+                    >
+                        <LogOut size={16} /> Logout
+                    </button>
                 </div>
             </nav>
+
+            {/* Logout Confirmation Modal */}
+            {showLogoutConfirm && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-bounce-in">
+                        <div className="flex justify-center mb-4">
+                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-100 to-orange-100 flex items-center justify-center">
+                                <AlertTriangle className="text-red-500" size={32} />
+                            </div>
+                        </div>
+                        <h2 className="text-xl font-bold text-center text-gray-800 mb-2">Confirm Logout</h2>
+                        <p className="text-center text-gray-500 mb-6">Are you sure you want to logout? You'll need to sign in again to access your account.</p>
+                        <div className="flex gap-3">
+                            <button 
+                                onClick={() => setShowLogoutConfirm(false)}
+                                className="flex-1 py-3 rounded-xl border-2 border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                onClick={() => {
+                                    setShowLogoutConfirm(false);
+                                    logout();
+                                }}
+                                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-red-400 to-orange-400 text-white font-semibold hover:from-red-500 hover:to-orange-500 transition shadow-lg"
+                            >
+                                Yes, Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
                 {/* Stats Grid */}
@@ -119,48 +157,42 @@ export default function Dashboard({ user, logout }: { user: any, logout: () => v
                         <p className="text-xs mt-4 bg-white/20 inline-block px-2 rounded">{user.points} Points</p>
                     </div>
 
-                    <div onClick={() => navigate('/hydration')} className="bg-white p-6 rounded-2xl shadow-sm border border-sage-100 hover:shadow-md transition cursor-pointer">
-                        <div className="flex justify-between text-blue-400"><span className="text-gray-500 font-medium">Hydration</span><Droplets /></div>
-                        <div className="mt-2"><span className="text-3xl font-bold text-gray-700">{user.waterIntake}</span><span className="text-gray-400"> / 8</span></div>
-                        <p className="text-xs text-gray-500 mt-2">Click to log water</p>
+                    <div onClick={() => navigate('/hydration')} className="bg-gradient-to-br from-blue-400 to-cyan-500 text-white p-6 rounded-2xl shadow-lg transform hover:scale-105 hover:shadow-xl transition-all cursor-pointer">
+                        <div className="flex justify-between items-start">
+                            <div><p className="opacity-80 text-sm uppercase">Hydration</p><h2 className="text-3xl font-bold">{user.waterIntake}<span className="text-lg opacity-70"> / 8</span></h2></div>
+                            <Droplets className="opacity-80" size={32} />
+                        </div>
+                        <p className="text-xs mt-4 bg-white/20 inline-block px-2 rounded">glasses today</p>
                     </div>
 
-                    <div onClick={() => setShowCaloriesModal(true)} className="bg-white p-6 rounded-2xl shadow-sm border border-sage-100 hover:shadow-md transition cursor-pointer">
-                        <div className="flex justify-between text-orange-400"><span className="text-gray-500 font-medium">Calories</span><Utensils /></div>
-                        <div className="mt-2">
-                            <span className="text-3xl font-bold text-gray-700">{calorieInfo?.consumed || 0}</span>
-                            <span className="text-gray-400 text-sm"> / {bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000}</span>
+                    <div onClick={() => setShowCaloriesModal(true)} className="bg-gradient-to-br from-orange-400 to-red-500 text-white p-6 rounded-2xl shadow-lg transform hover:scale-105 hover:shadow-xl transition-all cursor-pointer">
+                        <div className="flex justify-between items-start">
+                            <div><p className="opacity-80 text-sm uppercase">Calories</p><h2 className="text-3xl font-bold">{calorieInfo?.consumed || 0}<span className="text-lg opacity-70"> / {bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000}</span></h2></div>
+                            <Utensils className="opacity-80" size={32} />
                         </div>
                         {bmiInfo && (
-                            <p className={`text-xs mt-2 font-medium ${getBmiColor(bmiInfo.category)}`}>
+                            <p className="text-xs mt-4 bg-white/20 inline-block px-2 rounded">
                                 BMI: {bmiInfo.bmi.toFixed(1)} ({bmiInfo.category})
                             </p>
                         )}
                     </div>
 
-                    <div onClick={() => navigate('/medicine')} className="bg-white p-6 rounded-2xl shadow-sm border border-sage-100 hover:shadow-md transition cursor-pointer">
-                        <div className="flex justify-between text-sage-400"><span className="text-gray-500 font-medium">Medicine</span><Pill /></div>
-                        {medicineSummary ? (
-                            <>
-                                <div className="mt-2">
-                                    <span className="text-3xl font-bold text-gray-700">{medicineSummary.takenDoses}</span>
-                                    <span className="text-gray-400"> / {medicineSummary.totalDoses}</span>
-                                </div>
-                                <div className="mt-2">
-                                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                                        <div 
-                                            className="h-full bg-sage-400"
-                                            style={{ width: `${medicineSummary.adherencePercentage}%` }}
-                                        />
-                                    </div>
-                                    <p className="text-xs text-gray-500 mt-1">{medicineSummary.adherencePercentage}% taken today</p>
-                                </div>
-                            </>
-                        ) : (
-                            <div className="mt-2">
-                                <span className="text-3xl font-bold text-gray-700">--</span>
-                                <p className="text-xs text-gray-500 mt-2">Click to manage</p>
+                    <div onClick={() => navigate('/medicine')} className="bg-gradient-to-br from-emerald-400 to-green-600 text-white p-6 rounded-2xl shadow-lg transform hover:scale-105 hover:shadow-xl transition-all cursor-pointer">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <p className="opacity-80 text-sm uppercase">Medicine</p>
+                                {medicineSummary ? (
+                                    <h2 className="text-3xl font-bold">{medicineSummary.takenDoses}<span className="text-lg opacity-70"> / {medicineSummary.totalDoses}</span></h2>
+                                ) : (
+                                    <h2 className="text-3xl font-bold">--</h2>
+                                )}
                             </div>
+                            <Pill className="opacity-80" size={32} />
+                        </div>
+                        {medicineSummary ? (
+                            <p className="text-xs mt-4 bg-white/20 inline-block px-2 rounded">{medicineSummary.adherencePercentage}% taken today</p>
+                        ) : (
+                            <p className="text-xs mt-4 bg-white/20 inline-block px-2 rounded">Click to manage</p>
                         )}
                     </div>
                 </div>
@@ -169,15 +201,15 @@ export default function Dashboard({ user, logout }: { user: any, logout: () => v
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     
                     {/* Meal Card */}
-                    <div onClick={() => navigate('/meals')} className="bg-gradient-to-br from-sage-300 to-sage-500 text-white rounded-2xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition flex flex-col justify-center text-center">
-                        <Coffee className="mx-auto mb-4 opacity-80" size={40} />
+                    <div onClick={() => navigate('/meals')} className="bg-gradient-to-br from-amber-400 to-orange-500 text-white rounded-2xl shadow-lg p-6 cursor-pointer transform hover:scale-105 hover:shadow-xl transition-all flex flex-col justify-center text-center">
+                        <Coffee className="mx-auto mb-4 opacity-90" size={48} />
                         <h3 className="text-2xl font-bold mb-2">Plan Your Meal</h3>
                         <p className="opacity-90 text-sm">Get smart recommendations based on your health profile and cuisine preferences.</p>
                     </div>
 
                     {/* Medicine Card */}
-                    <div onClick={() => navigate('/medicine')} className="bg-gradient-to-br from-lavender-300 to-lavender-500 text-white rounded-2xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition flex flex-col justify-center text-center">
-                        <Pill className="mx-auto mb-4 opacity-80" size={40} />
+                    <div onClick={() => navigate('/medicine')} className="bg-gradient-to-br from-pink-400 to-purple-600 text-white rounded-2xl shadow-lg p-6 cursor-pointer transform hover:scale-105 hover:shadow-xl transition-all flex flex-col justify-center text-center">
+                        <Pill className="mx-auto mb-4 opacity-90" size={48} />
                         <h3 className="text-2xl font-bold mb-2">Medicine Cabinet</h3>
                         <p className="opacity-90 text-sm">Track your medicines, set reminders, and never miss a dose.</p>
                     </div>
@@ -185,37 +217,37 @@ export default function Dashboard({ user, logout }: { user: any, logout: () => v
 
                 {/* Health Quick Stats */}
                 {(user.height && user.weight) && (
-                    <div className="bg-white rounded-2xl shadow-sm border border-sage-100 p-6">
-                        <h3 className="font-bold text-lg text-gray-700 mb-4 flex items-center gap-2">
-                            <Heart className="text-red-400" /> Your Health Overview
+                    <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-2xl shadow-lg p-6 text-white">
+                        <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                            <Heart className="text-pink-200" /> Your Health Overview
                         </h3>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                            <div className="bg-sage-50 p-4 rounded-xl">
-                                <p className="text-2xl font-bold text-sage-600">{user.height} cm</p>
-                                <p className="text-xs text-gray-500">Height</p>
+                            <div className="bg-white/20 backdrop-blur p-4 rounded-xl">
+                                <p className="text-2xl font-bold">{user.height} cm</p>
+                                <p className="text-xs opacity-80">Height</p>
                             </div>
-                            <div className="bg-sage-50 p-4 rounded-xl">
-                                <p className="text-2xl font-bold text-sage-600">{user.weight} kg</p>
-                                <p className="text-xs text-gray-500">Weight</p>
+                            <div className="bg-white/20 backdrop-blur p-4 rounded-xl">
+                                <p className="text-2xl font-bold">{user.weight} kg</p>
+                                <p className="text-xs opacity-80">Weight</p>
                             </div>
                             {bmiInfo && (
                                 <>
-                                    <div className="bg-sage-50 p-4 rounded-xl">
-                                        <p className={`text-2xl font-bold ${getBmiColor(bmiInfo.category)}`}>{bmiInfo.bmi.toFixed(1)}</p>
-                                        <p className="text-xs text-gray-500">BMI</p>
+                                    <div className="bg-white/20 backdrop-blur p-4 rounded-xl">
+                                        <p className="text-2xl font-bold">{bmiInfo.bmi.toFixed(1)}</p>
+                                        <p className="text-xs opacity-80">BMI</p>
                                     </div>
-                                    <div className="bg-sage-50 p-4 rounded-xl">
-                                        <p className="text-2xl font-bold text-orange-500">{bmiInfo.recommendedCalories}</p>
-                                        <p className="text-xs text-gray-500">Daily Calories</p>
+                                    <div className="bg-white/20 backdrop-blur p-4 rounded-xl">
+                                        <p className="text-2xl font-bold">{bmiInfo.recommendedCalories}</p>
+                                        <p className="text-xs opacity-80">Daily Calories</p>
                                     </div>
                                 </>
                             )}
                         </div>
                         {user.conditions && (
                             <div className="mt-4 flex flex-wrap gap-2">
-                                <span className="text-xs text-gray-500">Conditions:</span>
+                                <span className="text-xs opacity-80">Conditions:</span>
                                 {user.conditions.split(',').map((c: string, i: number) => (
-                                    <span key={i} className="bg-lavender-100 text-lavender-600 px-2 py-1 rounded-full text-xs">
+                                    <span key={i} className="bg-white/30 backdrop-blur px-2 py-1 rounded-full text-xs">
                                         {c.trim()}
                                     </span>
                                 ))}
@@ -279,10 +311,10 @@ export default function Dashboard({ user, logout }: { user: any, logout: () => v
                                         <p className={`text-sm font-medium ${getBmiColor(bmiInfo.category)}`}>{bmiInfo.category}</p>
                                     </div>
                                     <div className="bg-sage-50 p-4 rounded-xl text-center">
-                                        <p className="text-3xl font-bold text-sage-600">{user.weight || '--'} kg</p>
+                                        <p className="text-3xl font-bold text-sage-600">{user.weight ? Math.round(user.weight) : '--'} kg</p>
                                         <p className="text-xs text-gray-500">Current Weight</p>
                                         {user.targetWeight && (
-                                            <p className="text-sm text-gray-600">Goal: {user.targetWeight} kg</p>
+                                            <p className="text-sm text-gray-600">Goal: {Math.round(user.targetWeight)} kg</p>
                                         )}
                                     </div>
                                 </div>
@@ -297,11 +329,11 @@ export default function Dashboard({ user, logout }: { user: any, logout: () => v
                                             <span className="text-sm font-medium">
                                                 {user.weight > user.targetWeight ? (
                                                     <span className="text-orange-600 flex items-center gap-1">
-                                                        <TrendingDown size={14} /> {(user.weight - user.targetWeight).toFixed(1)} kg to lose
+                                                        <TrendingDown size={14} /> {Math.round(user.weight - user.targetWeight)} kg to lose
                                                     </span>
                                                 ) : user.weight < user.targetWeight ? (
-                                                    <span className="text-blue-600 flex items-center gap-1">
-                                                        <TrendingUp size={14} /> {(user.targetWeight - user.weight).toFixed(1)} kg to gain
+                                                    <span className="text-purple-600 flex items-center gap-1">
+                                                        <TrendingUp size={14} /> {Math.round(user.targetWeight - user.weight)} kg to gain
                                                     </span>
                                                 ) : (
                                                     <span className="text-green-600">🎉 Goal reached!</span>
@@ -324,9 +356,9 @@ export default function Dashboard({ user, logout }: { user: any, logout: () => v
                                 )}
                                 
                                 {/* Healthy Range Info */}
-                                <div className="bg-blue-50 p-4 rounded-xl text-sm">
-                                    <p className="font-medium text-blue-700 mb-1">💡 Healthy Calorie Tips</p>
-                                    <ul className="text-blue-600 text-xs space-y-1">
+                                <div className="bg-gradient-to-r from-sage-50 to-emerald-50 p-4 rounded-xl text-sm border border-sage-200">
+                                    <p className="font-medium text-sage-700 mb-1">💡 Healthy Calorie Tips</p>
+                                    <ul className="text-sage-600 text-xs space-y-1">
                                         <li>• Your recommended intake is based on your BMI and activity level</li>
                                         <li>• Eat 200-500 fewer calories daily to lose ~0.5kg/week</li>
                                         <li>• Add 300-500 calories to gain muscle mass healthily</li>

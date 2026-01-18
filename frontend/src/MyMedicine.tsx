@@ -216,10 +216,22 @@ export default function MyMedicine({ user }: { user: any }) {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-sage-50 via-lavender-50 to-sage-100 p-6">
-            <button onClick={() => navigate('/dashboard')} className="mb-4 text-sage-600 font-bold hover:text-sage-800 flex items-center gap-2">
+            <button onClick={() => navigate('/dashboard')} className="mb-4 text-sage-600 font-bold hover:text-sage-800 flex items-center gap-2 bg-white/50 px-4 py-2 rounded-xl hover:bg-white/80 transition">
                 <Activity size={18} /> ← Back to Dashboard
             </button>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-sage-600 to-lavender-600 bg-clip-text text-transparent mb-6">💊 My Medicine Cabinet</h1>
+            
+            {/* Header */}
+            <div className="bg-gradient-to-r from-sage-400 via-lavender-400 to-sage-400 rounded-2xl p-6 mb-6 shadow-lg">
+                <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center">
+                        <span className="text-4xl">💊</span>
+                    </div>
+                    <div>
+                        <h1 className="text-3xl font-bold text-white">My Medicine Cabinet</h1>
+                        <p className="text-white/80">Track your medications & stay healthy</p>
+                    </div>
+                </div>
+            </div>
 
             {/* Summary Card */}
             {summary && (
@@ -282,19 +294,19 @@ export default function MyMedicine({ user }: { user: any }) {
             <div className="flex gap-2 mb-4">
                 <button 
                     onClick={() => setTab('today')}
-                    className={`px-4 py-2 rounded-lg font-medium transition ${tab === 'today' ? 'bg-gradient-to-r from-sage-400 to-sage-500 text-white shadow-md' : 'bg-white text-sage-600 hover:bg-sage-100 border border-sage-200'}`}
+                    className={`px-5 py-2.5 rounded-xl font-medium transition shadow-md ${tab === 'today' ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white' : 'bg-white text-sage-600 hover:bg-sage-100 border border-sage-200'}`}
                 >
                     📅 Today's Schedule
                 </button>
                 <button 
                     onClick={() => setTab('all')}
-                    className={`px-4 py-2 rounded-lg font-medium transition ${tab === 'all' ? 'bg-gradient-to-r from-sage-400 to-sage-500 text-white shadow-md' : 'bg-white text-sage-600 hover:bg-sage-100 border border-sage-200'}`}
+                    className={`px-5 py-2.5 rounded-xl font-medium transition shadow-md ${tab === 'all' ? 'bg-gradient-to-r from-lavender-400 to-purple-500 text-white' : 'bg-white text-sage-600 hover:bg-sage-100 border border-sage-200'}`}
                 >
                     💊 All Medicines
                 </button>
                 <button 
                     onClick={() => setShowAddForm(true)}
-                    className="ml-auto bg-gradient-to-r from-lavender-400 to-lavender-500 text-white px-4 py-2 rounded-lg font-medium hover:from-lavender-500 hover:to-lavender-600 flex items-center gap-2 shadow-md"
+                    className="ml-auto bg-gradient-to-r from-orange-400 to-amber-500 text-white px-5 py-2.5 rounded-xl font-medium hover:from-orange-500 hover:to-amber-600 flex items-center gap-2 shadow-lg hover:shadow-xl transition-all"
                 >
                     <Plus size={18} /> Add Medicine
                 </button>
@@ -302,77 +314,82 @@ export default function MyMedicine({ user }: { user: any }) {
 
             {/* Add Medicine Modal */}
             {showAddForm && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-gradient-to-br from-white via-sage-50 to-lavender-50 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-lavender-100">
                         <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-bold text-sage-600">Add New Medicine</h2>
-                            <button onClick={() => setShowAddForm(false)} className="text-gray-400 hover:text-gray-600">
-                                <X size={24} />
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sage-400 to-lavender-400 flex items-center justify-center">
+                                    <span className="text-xl">💊</span>
+                                </div>
+                                <h2 className="text-xl font-bold bg-gradient-to-r from-sage-600 to-lavender-600 bg-clip-text text-transparent">Add New Medicine</h2>
+                            </div>
+                            <button onClick={() => setShowAddForm(false)} className="text-gray-400 hover:text-gray-600 bg-white p-2 rounded-full hover:bg-gray-100 transition">
+                                <X size={20} />
                             </button>
                         </div>
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Medicine Name *</label>
+                                <label className="block text-sm font-medium text-sage-700 mb-1">Medicine Name *</label>
                                 <input 
                                     placeholder="e.g., Vitamin B Complex" 
                                     value={newMed.name} 
                                     onChange={e => setNewMed({...newMed, name: e.target.value})} 
-                                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sage-400 focus:outline-none" 
+                                    className="w-full p-3 border-2 border-sage-200 rounded-xl focus:ring-2 focus:ring-sage-400 focus:border-sage-400 focus:outline-none bg-white/80" 
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Dosage</label>
+                                <label className="block text-sm font-medium text-sage-700 mb-1">Dosage</label>
                                 <input 
                                     placeholder="e.g., 500mg, 1 tablet" 
                                     value={newMed.dosage} 
                                     onChange={e => setNewMed({...newMed, dosage: e.target.value})} 
-                                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sage-400 focus:outline-none" 
+                                    className="w-full p-3 border-2 border-lavender-200 rounded-xl focus:ring-2 focus:ring-lavender-400 focus:border-lavender-400 focus:outline-none bg-white/80" 
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Duration (days) *</label>
+                                <label className="block text-sm font-medium text-sage-700 mb-1">Duration (days) *</label>
                                 <input 
                                     type="number" 
                                     placeholder="30" 
                                     value={newMed.durationDays} 
                                     onChange={e => setNewMed({...newMed, durationDays: parseInt(e.target.value) || 30})} 
-                                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sage-400 focus:outline-none" 
+                                    className="w-full p-3 border-2 border-sage-200 rounded-xl focus:ring-2 focus:ring-sage-400 focus:border-sage-400 focus:outline-none bg-white/80" 
                                 />
                             </div>
                             <div className="grid grid-cols-3 gap-3">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Time 1 *</label>
+                                    <label className="block text-sm font-medium text-green-600 mb-1">🌅 Morning *</label>
                                     <input 
                                         type="time" 
                                         value={newMed.time1} 
                                         onChange={e => setNewMed({...newMed, time1: e.target.value})} 
-                                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sage-400 focus:outline-none" 
+                                        className="w-full p-3 border-2 border-green-200 rounded-xl focus:ring-2 focus:ring-green-400 focus:border-green-400 focus:outline-none bg-green-50/50" 
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Time 2</label>
+                                    <label className="block text-sm font-medium text-amber-600 mb-1">☀️ Afternoon</label>
                                     <input 
                                         type="time" 
                                         value={newMed.time2} 
                                         onChange={e => setNewMed({...newMed, time2: e.target.value})} 
-                                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sage-400 focus:outline-none" 
+                                        className="w-full p-3 border-2 border-amber-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-amber-400 focus:outline-none bg-amber-50/50" 
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Time 3</label>
+                                    <label className="block text-sm font-medium text-indigo-600 mb-1">🌙 Evening</label>
                                     <input 
                                         type="time" 
                                         value={newMed.time3} 
                                         onChange={e => setNewMed({...newMed, time3: e.target.value})} 
-                                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sage-400 focus:outline-none" 
+                                        className="w-full p-3 border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 focus:outline-none bg-indigo-50/50" 
                                     />
                                 </div>
                             </div>
                             <button 
                                 onClick={addMedicine} 
-                                className="w-full bg-gradient-to-r from-sage-400 to-lavender-400 text-white py-3 rounded-lg font-semibold hover:from-sage-500 hover:to-lavender-500"
+                                className="w-full bg-gradient-to-r from-sage-400 via-lavender-400 to-sage-400 text-white py-3 rounded-xl font-semibold hover:from-sage-500 hover:via-lavender-500 hover:to-sage-500 shadow-lg hover:shadow-xl transition-all"
                             >
-                                Add Medicine
+                                ✨ Add Medicine
                             </button>
                         </div>
                     </div>
@@ -381,65 +398,70 @@ export default function MyMedicine({ user }: { user: any }) {
 
             {/* Edit Medicine Modal */}
             {editingMed && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-gradient-to-br from-white via-lavender-50 to-sage-50 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-sage-100">
                         <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-bold text-sage-600">Edit Medicine</h2>
-                            <button onClick={() => setEditingMed(null)} className="text-gray-400 hover:text-gray-600">
-                                <X size={24} />
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-lavender-400 to-sage-400 flex items-center justify-center">
+                                    <Edit2 size={18} className="text-white" />
+                                </div>
+                                <h2 className="text-xl font-bold bg-gradient-to-r from-lavender-600 to-sage-600 bg-clip-text text-transparent">Edit Medicine</h2>
+                            </div>
+                            <button onClick={() => setEditingMed(null)} className="text-gray-400 hover:text-gray-600 bg-white p-2 rounded-full hover:bg-gray-100 transition">
+                                <X size={20} />
                             </button>
                         </div>
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Medicine Name</label>
+                                <label className="block text-sm font-medium text-lavender-700 mb-1">Medicine Name</label>
                                 <input 
                                     value={editingMed.name} 
                                     onChange={e => setEditingMed({...editingMed, name: e.target.value})} 
-                                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sage-400 focus:outline-none" 
+                                    className="w-full p-3 border-2 border-lavender-200 rounded-xl focus:ring-2 focus:ring-lavender-400 focus:border-lavender-400 focus:outline-none bg-white/80" 
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Dosage</label>
+                                <label className="block text-sm font-medium text-lavender-700 mb-1">Dosage</label>
                                 <input 
                                     value={editingMed.dosage} 
                                     onChange={e => setEditingMed({...editingMed, dosage: e.target.value})} 
-                                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sage-400 focus:outline-none" 
+                                    className="w-full p-3 border-2 border-sage-200 rounded-xl focus:ring-2 focus:ring-sage-400 focus:border-sage-400 focus:outline-none bg-white/80" 
                                 />
                             </div>
                             <div className="grid grid-cols-3 gap-3">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Time 1</label>
+                                    <label className="block text-sm font-medium text-green-600 mb-1">🌅 Morning</label>
                                     <input 
                                         type="time" 
                                         value={editingMed.time1 || ''} 
                                         onChange={e => setEditingMed({...editingMed, time1: e.target.value})} 
-                                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sage-400 focus:outline-none" 
+                                        className="w-full p-3 border-2 border-green-200 rounded-xl focus:ring-2 focus:ring-green-400 focus:border-green-400 focus:outline-none bg-green-50/50" 
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Time 2</label>
+                                    <label className="block text-sm font-medium text-amber-600 mb-1">☀️ Afternoon</label>
                                     <input 
                                         type="time" 
                                         value={editingMed.time2 || ''} 
                                         onChange={e => setEditingMed({...editingMed, time2: e.target.value})} 
-                                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sage-400 focus:outline-none" 
+                                        className="w-full p-3 border-2 border-amber-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-amber-400 focus:outline-none bg-amber-50/50" 
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Time 3</label>
+                                    <label className="block text-sm font-medium text-indigo-600 mb-1">🌙 Evening</label>
                                     <input 
                                         type="time" 
                                         value={editingMed.time3 || ''} 
                                         onChange={e => setEditingMed({...editingMed, time3: e.target.value})} 
-                                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-sage-400 focus:outline-none" 
+                                        className="w-full p-3 border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 focus:outline-none bg-indigo-50/50" 
                                     />
                                 </div>
                             </div>
                             <button 
                                 onClick={updateMedicine} 
-                                className="w-full bg-gradient-to-r from-sage-400 to-lavender-400 text-white py-3 rounded-lg font-semibold hover:from-sage-500 hover:to-lavender-500"
+                                className="w-full bg-gradient-to-r from-lavender-400 via-sage-400 to-lavender-400 text-white py-3 rounded-xl font-semibold hover:from-lavender-500 hover:via-sage-500 hover:to-lavender-500 shadow-lg hover:shadow-xl transition-all"
                             >
-                                Save Changes
+                                ✨ Save Changes
                             </button>
                         </div>
                     </div>
