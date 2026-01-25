@@ -23,6 +23,7 @@
     }
   },
   "forwardPorts": [8080, 5173],
+  "postCreateCommand": "cd /workspaces/MediMind/frontend && npm install --no-audit --no-fund && cd /workspaces/MediMind/backend && mvn clean install -DskipTests -q && echo '✅ Environment Ready!'"
   "portsAttributes": {
     "8080": { "label": "Backend API", "onAutoForward": "notify" },
     "5173": { "label": "Frontend", "onAutoForward": "openBrowser" }
