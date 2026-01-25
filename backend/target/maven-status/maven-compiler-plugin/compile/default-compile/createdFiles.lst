@@ -5,12 +5,14 @@ com/medimind/api/controller/UserController.class
 com/medimind/api/repository/MealRepository.class
 com/medimind/api/service/MealSuggestionService.class
 com/medimind/api/service/MealService.class
+com/medimind/api/service/BackgroundTaskService.class
 com/medimind/api/service/MealSuggestionService$MealSuggestion.class
 com/medimind/api/model/User.class
 com/medimind/api/repository/JournalRepository.class
 com/medimind/api/controller/AuthController.class
 com/medimind/api/controller/JournalController.class
 com/medimind/api/controller/MealController$MealRequest.class
+com/medimind/api/service/EmailService.class
 com/medimind/api/model/JournalEntry.class
 com/medimind/api/MediMindApplication.class
 com/medimind/api/repository/UserRepository.class
