@@ -30,29 +30,21 @@
 Built with **Java Spring Boot** backend and **React TypeScript** frontend, MediMind provides a seamless, responsive experience across devices.
 
 ---
-
 ## 🚀 Quick Start
 
 ### Using GitHub Codespaces or Dev Containers (Recommended)
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/MarjiaIslam/MediMind)
 
-1. Click the button above or clone locally and open in VS Code Dev Container
-2. Run the automated setup and start scripts:
+1. Open in Codespaces or VS Code Dev Container. All dependencies (Java, Maven, Node.js, npm) are installed automatically.
+2. Start the backend and frontend in separate terminals:
 
 ```bash
-# One-time setup (installs all dependencies)
-./scripts/setup.sh
+# Terminal 1 (Backend)
+cd backend && mvn spring-boot:run
 
-# Start both backend and frontend
-./scripts/start.sh
-
-# Or start individually:
-./scripts/start-backend.sh   # Backend only (port 8080)
-./scripts/start-frontend.sh  # Frontend only (port 5173)
-
-# Stop all services
-./scripts/stop.sh
+# Terminal 2 (Frontend)
+cd frontend && npm run dev
 ```
 
 3. Access the application:
