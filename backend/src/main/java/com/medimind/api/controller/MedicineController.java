@@ -3,8 +3,11 @@ package com.medimind.api.controller;
 import com.medimind.api.model.Medicine;
 import com.medimind.api.repository.MedicineRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -131,7 +134,20 @@ public class MedicineController {
 
     // Add a new medicine
     @PostMapping("/add")
-    public Medicine addMedicine(@RequestBody Medicine medicine) {
+    public ResponseEntity<?> addMedicine(@Valid @RequestBody Medicine medicine, BindingResult bindingResult) {
+        // Validate Morning Time is not empty
+        if (medicine.getTime1() == null || medicine.getTime1().trim().isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Morning Time (time1) is mandatory and cannot be left empty"));
+        }
+        
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", bindingResult.getAllErrors().get(0).getDefaultMessage()));
+        }
+        
         if (medicine.getStartDate() == null) {
             medicine.setStartDate(LocalDate.now());
         }
@@ -139,7 +155,7 @@ public class MedicineController {
             medicine.setEndDate(medicine.getStartDate().plusDays(medicine.getDurationDays()));
         }
         medicine.setActive(true);
-        return medicineRepository.save(medicine);
+        return ResponseEntity.ok(medicineRepository.save(medicine));
     }
 
     // Toggle specific time slot

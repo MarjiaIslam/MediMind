@@ -23,5 +23,5 @@
     }
   },
   "forwardPorts": [8080, 5173],
-  "postCreateCommand": "cd frontend && npm install && cd ../backend && mvn dependency:resolve -q && echo 'Environment Ready! Run: Backend: cd backend && mvn spring-boot:run | Frontend: cd frontend && npm run dev'"
+  "postCreateCommand": "cd /workspaces/MediMind/frontend && npm install --no-audit --no-fund && cd /workspaces/MediMind/backend && mvn clean install -DskipTests -q && echo '✅ Environment Ready!'"
 }
