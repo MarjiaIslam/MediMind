@@ -101,10 +101,46 @@ npm run dev
 
 ---
 
+## 📋 Technical Requirements Fulfilled
+
+This project demonstrates key software engineering concepts:
+
+| Requirement | Status | Implementation Details |
+|-------------|--------|------------------------|
+| **REST APIs** | ✅ Complete | Full CRUD operations with `@RestController`, `@GetMapping`, `@PostMapping`, `@PutMapping`, `@DeleteMapping`. Controllers: `AuthController`, `UserController`, `MedicineController`, `MealController`, `JournalController` |
+| **Networking** | ✅ Complete | Frontend uses **Axios** for async HTTP requests. Backend configured with `@CrossOrigin` for CORS. Client-server architecture over HTTP. **SMTP email** for verification |
+| **Threads** | ✅ Complete | `@Scheduled` cron tasks for medicine reminders & daily resets. `@Async` methods with `CompletableFuture` for non-blocking processing. `ExecutorService` thread pool for parallel medicine checking. `ConcurrentHashMap` for thread-safe notifications |
+
+### Threading Implementation Details
+
+| Component | Thread Concept | Location |
+|-----------|---------------|----------|
+| Medicine Reminder Check | `@Scheduled(cron)` - Runs every minute | `BackgroundTaskService.java` |
+| Daily Medicine Reset | `@Scheduled(cron)` - Runs at midnight | `BackgroundTaskService.java` |
+| Health Summary Calculator | `@Scheduled(cron)` - Runs at 6 AM | `BackgroundTaskService.java` |
+| Adherence Calculator | `@Async` + `CompletableFuture` | `BackgroundTaskService.java` |
+| Meal Processing | `@Async` + `CompletableFuture` | `BackgroundTaskService.java` |
+| Parallel Medicine Checks | `ExecutorService` thread pool | `BackgroundTaskService.java` |
+| Notification Storage | `ConcurrentHashMap` (thread-safe) | `BackgroundTaskService.java` |
+| Email Sending | `@Async` non-blocking | `EmailService.java` |
+
+### Networking Implementation Details
+
+| Component | Network Concept | Location |
+|-----------|-----------------|----------|
+| REST API Calls | Axios HTTP Client | `Auth.tsx`, all frontend components |
+| CORS Configuration | `@CrossOrigin` | All controllers |
+| Email Verification | SMTP Protocol (Gmail) | `EmailService.java` |
+| DNS Domain Validation | `InetAddress` lookup | `EmailService.java` |
+
+---
+
 ## ✨ Key Features
 
 ### 👤 User Profile & Personalization
-- Secure registration & login with email validation
+- Secure registration & login with **email verification**
+- **Email domain validation** - Only real email domains accepted
+- **6-digit verification code** sent to email
 - Custom profile picture or avatar icons
 - Deep health profile: age, weight, height, allergies, chronic conditions
 - Automatic BMI calculation with health categories
