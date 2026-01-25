@@ -2,6 +2,13 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Trash2, CheckCircle, Circle, Plus, Clock, Bell, Calendar, X, Edit2, Activity } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { 
+    playMedicineAlert, 
+    playUrgentAlert, 
+    sendMedicineNotification, 
+    sendSuccessNotification,
+    requestNotificationPermission 
+} from './utils/audioNotification';
 
 interface Medicine {
     id: number;
@@ -57,13 +64,14 @@ export default function MyMedicine({ user }: { user: any }) {
         durationDays: 30 
     });
     const [tab, setTab] = useState<'today' | 'all'>('today');
+    const [validationErrors, setValidationErrors] = useState<string>('');
     const navigate = useNavigate();
 
     useEffect(() => { 
         fetchAll();
         // Request notification permission
         if ('Notification' in window && Notification.permission === 'default') {
-            Notification.requestPermission();
+            requestNotificationPermission();
         }
         // Check reminders every minute
         const interval = setInterval(checkReminders, 60000);
@@ -94,11 +102,16 @@ export default function MyMedicine({ user }: { user: any }) {
             
             upcomingReminders.forEach((reminder: TodayMedicine) => {
                 if ('Notification' in window && Notification.permission === 'granted') {
-                    new Notification('💊 Medicine Reminder', {
-                        body: `Time to take ${reminder.medicineName} (${reminder.dosage})`,
-                        icon: '/favicon.ico',
-                        tag: `med-${reminder.medicineId}-${reminder.slot}`
-                    });
+                    // Send notification with sound alert
+                    sendMedicineNotification(
+                        `💊 Medicine Reminder: ${reminder.medicineName}`,
+                        {
+                            body: `Dosage: ${reminder.dosage}\nScheduled time: ${formatTimeForDisplay(reminder.time)}`,
+                            playSound: true
+                        }
+                    );
+                    // Also play urgent alert
+                    playUrgentAlert();
                 }
             });
         } catch (err) {
@@ -107,19 +120,39 @@ export default function MyMedicine({ user }: { user: any }) {
     };
 
     const addMedicine = async () => {
-        if (!newMed.name || !newMed.time1) return;
+        // Validation: Check that Morning Time (time1) is not empty
+        if (!newMed.name) {
+            setValidationErrors('Medicine name is required');
+            return;
+        }
+        if (!newMed.time1 || newMed.time1.trim() === '') {
+            setValidationErrors('Morning Time is mandatory and cannot be left empty');
+            return;
+        }
+        
+        setValidationErrors('');
+        
         try {
-            await axios.post('/api/medicine/add', { 
+            const response = await axios.post('/api/medicine/add', { 
                 ...newMed, 
                 userId: user.id,
                 time1: formatTimeFor24h(newMed.time1),
                 time2: newMed.time2 ? formatTimeFor24h(newMed.time2) : null,
                 time3: newMed.time3 ? formatTimeFor24h(newMed.time3) : null
             });
-            setNewMed({ name: '', dosage: '', time1: '08:00', time2: '', time3: '', durationDays: 30 });
-            setShowAddForm(false);
-            fetchAll();
-        } catch (err) {
+            
+            if (response.status === 200 || response.status === 201) {
+                // Play success sound
+                playMedicineAlert('success');
+                sendSuccessNotification(`${newMed.name} added successfully!`);
+                
+                setNewMed({ name: '', dosage: '', time1: '08:00', time2: '', time3: '', durationDays: 30 });
+                setShowAddForm(false);
+                fetchAll();
+            }
+        } catch (err: any) {
+            const errorMessage = err.response?.data?.error || 'Error adding medicine';
+            setValidationErrors(errorMessage);
             console.error('Error adding medicine:', err);
         }
     };
@@ -138,6 +171,9 @@ export default function MyMedicine({ user }: { user: any }) {
     const toggleSlot = async (medicineId: number, slot: number) => {
         try {
             await axios.put(`/api/medicine/toggle/${medicineId}/${slot}`);
+            // Play success sound when medicine is marked as taken
+            playMedicineAlert('success');
+            sendSuccessNotification('Medicine marked as taken ✓');
             fetchAll();
         } catch (err) {
             console.error('Error toggling medicine:', err);
@@ -323,10 +359,18 @@ export default function MyMedicine({ user }: { user: any }) {
                                 </div>
                                 <h2 className="text-xl font-bold bg-gradient-to-r from-sage-600 to-lavender-600 bg-clip-text text-transparent">Add New Medicine</h2>
                             </div>
-                            <button onClick={() => setShowAddForm(false)} className="text-gray-400 hover:text-gray-600 bg-white p-2 rounded-full hover:bg-gray-100 transition">
+                            <button onClick={() => { setShowAddForm(false); setValidationErrors(''); }} className="text-gray-400 hover:text-gray-600 bg-white p-2 rounded-full hover:bg-gray-100 transition">
                                 <X size={20} />
                             </button>
                         </div>
+                        
+                        {/* Validation Error Display */}
+                        {validationErrors && (
+                            <div className="mb-4 p-3 bg-red-100 border-2 border-red-300 rounded-lg">
+                                <p className="text-red-700 font-medium text-sm">⚠️ {validationErrors}</p>
+                            </div>
+                        )}
+                        
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-sage-700 mb-1">Medicine Name *</label>
@@ -358,12 +402,18 @@ export default function MyMedicine({ user }: { user: any }) {
                             </div>
                             <div className="grid grid-cols-3 gap-3">
                                 <div>
-                                    <label className="block text-sm font-medium text-green-600 mb-1">🌅 Morning *</label>
+                                    <label className="block text-sm font-medium text-green-600 mb-1">
+                                        🌅 Morning <span className="text-red-500 font-bold">*</span>
+                                    </label>
                                     <input 
                                         type="time" 
                                         value={newMed.time1} 
                                         onChange={e => setNewMed({...newMed, time1: e.target.value})} 
-                                        className="w-full p-3 border-2 border-green-200 rounded-xl focus:ring-2 focus:ring-green-400 focus:border-green-400 focus:outline-none bg-green-50/50" 
+                                        className={`w-full p-3 border-2 rounded-xl focus:ring-2 focus:outline-none bg-green-50/50 ${
+                                            validationErrors.includes('Morning Time') 
+                                                ? 'border-red-400 focus:ring-red-400 focus:border-red-400' 
+                                                : 'border-green-200 focus:ring-green-400 focus:border-green-400'
+                                        }`}
                                     />
                                 </div>
                                 <div>

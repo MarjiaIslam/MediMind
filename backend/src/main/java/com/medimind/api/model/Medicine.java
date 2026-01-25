@@ -1,6 +1,7 @@
 package com.medimind.api.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -26,7 +27,8 @@ public class Medicine {
     private LocalDate endDate;
     
     // For daily tracking - specific time slots
-    private String time1; // First time slot
+    @NotBlank(message = "Morning Time (time1) is mandatory and cannot be left empty")
+    private String time1; // First time slot - MANDATORY
     private String time2; // Second time slot (optional)
     private String time3; // Third time slot (optional)
     
