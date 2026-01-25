@@ -23,6 +23,8 @@ public class Meal {
 
     private String notes;
 
+    private Integer calories; // User can input or system calculates
+
     @Column(nullable = false)
     private LocalDateTime loggedAt;
 

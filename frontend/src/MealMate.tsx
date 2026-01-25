@@ -8,6 +8,7 @@ interface Meal {
     mealType: string;
     foodItems: string;
     notes: string;
+    calories: number;
     loggedAt: string;
 }
 
@@ -40,7 +41,8 @@ export default function MealMate({ user, setUser }: { user: any, setUser: any })
     const [formData, setFormData] = useState({
         mealType: 'breakfast',
         foodItems: '',
-        notes: ''
+        notes: '',
+        calories: ''
     });
 
     useEffect(() => {
@@ -124,8 +126,13 @@ export default function MealMate({ user, setUser }: { user: any, setUser: any })
         }
         try {
             setLoading(true);
-            await axios.post(`/api/meals/log?userId=${user.id}`, formData);
-            setFormData({ mealType: 'breakfast', foodItems: '', notes: '' });
+            await axios.post(`/api/meals/log?userId=${user.id}`, {
+                mealType: formData.mealType,
+                foodItems: formData.foodItems,
+                notes: formData.notes,
+                calories: formData.calories ? parseInt(formData.calories) : null
+            });
+            setFormData({ mealType: 'breakfast', foodItems: '', notes: '', calories: '' });
             await fetchMealHistory();
             alert('Meal logged successfully!');
             setStep('history');
@@ -591,6 +598,19 @@ export default function MealMate({ user, setUser }: { user: any, setUser: any })
                                 />
                             </div>
 
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">Calories (optional)</label>
+                                <input
+                                    type="number"
+                                    value={formData.calories}
+                                    onChange={(e) => setFormData({ ...formData, calories: e.target.value })}
+                                    placeholder="e.g., 450"
+                                    min="0"
+                                    className="w-full p-3 bg-gray-50 rounded-lg border-2 border-orange-200 focus:border-orange-500 outline-none transition"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Leave empty to auto-calculate based on food items</p>
+                            </div>
+
                             <div className="bg-emerald-50 border-l-4 border-emerald-400 p-4 rounded">
                                 <p className="text-sm text-emerald-700">💡 <strong>Tip:</strong> Be as detailed as possible about ingredients to get better health insights!</p>
                             </div>
@@ -608,7 +628,7 @@ export default function MealMate({ user, setUser }: { user: any, setUser: any })
                                     type="button"
                                     onClick={() => {
                                         setStep('menu');
-                                        setFormData({ mealType: 'breakfast', foodItems: '', notes: '' });
+                                        setFormData({ mealType: 'breakfast', foodItems: '', notes: '', calories: '' });
                                     }}
                                     className="flex-1 bg-gray-300 text-gray-700 font-bold py-3 rounded-lg hover:bg-gray-400 transition"
                                 >

@@ -135,11 +135,14 @@ public class MedicineController {
     // Add a new medicine
     @PostMapping("/add")
     public ResponseEntity<?> addMedicine(@Valid @RequestBody Medicine medicine, BindingResult bindingResult) {
-        // Validate Morning Time is not empty
-        if (medicine.getTime1() == null || medicine.getTime1().trim().isEmpty()) {
+        // Validate at least one time slot is provided
+        boolean hasAtLeastOneTime = (medicine.getTime1() != null && !medicine.getTime1().trim().isEmpty()) ||
+                                    (medicine.getTime2() != null && !medicine.getTime2().trim().isEmpty()) ||
+                                    (medicine.getTime3() != null && !medicine.getTime3().trim().isEmpty());
+        if (!hasAtLeastOneTime) {
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "Morning Time (time1) is mandatory and cannot be left empty"));
+                    .body(Map.of("error", "At least one time slot must be provided"));
         }
         
         if (bindingResult.hasErrors()) {

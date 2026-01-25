@@ -31,6 +31,7 @@ public class MealController {
         private String mealType;
         private String foodItems;
         private String notes;
+        private Integer calories;
 
         public String getMealType() { return mealType; }
         public void setMealType(String mealType) { this.mealType = mealType; }
@@ -40,6 +41,9 @@ public class MealController {
 
         public String getNotes() { return notes; }
         public void setNotes(String notes) { this.notes = notes; }
+
+        public Integer getCalories() { return calories; }
+        public void setCalories(Integer calories) { this.calories = calories; }
     }
 
     // CREATE - Log new meal
@@ -54,12 +58,78 @@ public class MealController {
             meal.setFoodItems(request.getFoodItems());
             meal.setNotes(request.getNotes());
             meal.setUser(user);
+            
+            // If calories provided by user, use it; otherwise calculate based on food items
+            if (request.getCalories() != null && request.getCalories() > 0) {
+                meal.setCalories(request.getCalories());
+            } else {
+                // Auto-calculate calories based on food items
+                meal.setCalories(calculateCalories(request.getFoodItems()));
+            }
 
             Meal saved = mealService.logMeal(meal);
             return ResponseEntity.ok(saved);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    // Calculate estimated calories from food items string
+    private int calculateCalories(String foodItems) {
+        if (foodItems == null || foodItems.trim().isEmpty()) {
+            return 0;
+        }
+        
+        // Simple calorie estimation based on common food keywords
+        String items = foodItems.toLowerCase();
+        int totalCalories = 0;
+        
+        // Proteins
+        if (items.contains("chicken")) totalCalories += 250;
+        if (items.contains("beef") || items.contains("steak")) totalCalories += 300;
+        if (items.contains("fish") || items.contains("salmon") || items.contains("tuna")) totalCalories += 200;
+        if (items.contains("egg")) totalCalories += 80;
+        if (items.contains("tofu")) totalCalories += 120;
+        if (items.contains("shrimp") || items.contains("prawn")) totalCalories += 100;
+        
+        // Carbs
+        if (items.contains("rice")) totalCalories += 200;
+        if (items.contains("bread") || items.contains("toast")) totalCalories += 80;
+        if (items.contains("pasta") || items.contains("noodle")) totalCalories += 220;
+        if (items.contains("potato")) totalCalories += 150;
+        if (items.contains("oatmeal") || items.contains("oat")) totalCalories += 150;
+        
+        // Vegetables
+        if (items.contains("salad")) totalCalories += 50;
+        if (items.contains("broccoli") || items.contains("spinach") || items.contains("kale")) totalCalories += 30;
+        if (items.contains("carrot")) totalCalories += 25;
+        if (items.contains("tomato")) totalCalories += 20;
+        
+        // Fruits
+        if (items.contains("apple") || items.contains("banana") || items.contains("orange")) totalCalories += 80;
+        if (items.contains("berries") || items.contains("strawberry")) totalCalories += 50;
+        
+        // Dairy
+        if (items.contains("milk")) totalCalories += 100;
+        if (items.contains("cheese")) totalCalories += 110;
+        if (items.contains("yogurt")) totalCalories += 100;
+        
+        // Drinks
+        if (items.contains("juice")) totalCalories += 120;
+        if (items.contains("coffee") || items.contains("tea")) totalCalories += 5;
+        if (items.contains("soda") || items.contains("cola")) totalCalories += 140;
+        
+        // Snacks
+        if (items.contains("cookie") || items.contains("cake")) totalCalories += 200;
+        if (items.contains("chips")) totalCalories += 150;
+        if (items.contains("nuts") || items.contains("almond")) totalCalories += 170;
+        
+        // If no match found, provide a default estimate based on meal type context
+        if (totalCalories == 0) {
+            totalCalories = 300; // Default estimate
+        }
+        
+        return totalCalories;
     }
 
     // READ - Get meal history for user

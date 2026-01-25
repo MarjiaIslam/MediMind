@@ -26,9 +26,8 @@ public class Medicine {
     private LocalDate startDate;
     private LocalDate endDate;
     
-    // For daily tracking - specific time slots
-    @NotBlank(message = "Morning Time (time1) is mandatory and cannot be left empty")
-    private String time1; // First time slot - MANDATORY
+    // For daily tracking - specific time slots (all optional)
+    private String time1; // First time slot (optional)
     private String time2; // Second time slot (optional)
     private String time3; // Third time slot (optional)
     

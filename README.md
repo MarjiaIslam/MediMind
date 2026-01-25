@@ -33,38 +33,32 @@ Built with **Java Spring Boot** backend and **React TypeScript** frontend, MediM
 
 ## 🚀 Quick Start
 
-### Using GitHub Codespaces (Easiest - One Click!)
+### Using GitHub Codespaces or Dev Containers (Recommended)
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/MarjiaIslam/MediMind)
 
-1. Click the button above or go to the repo → **Code** → **Codespaces** → **Create codespace**
-2. Wait for automatic setup (Java 17, Node.js 18, all dependencies)
-3. Run the project:
+1. Click the button above or clone locally and open in VS Code Dev Container
+2. Run the automated setup and start scripts:
 
 ```bash
-# Terminal 1 - Backend
-cd backend && mvn spring-boot:run
+# One-time setup (installs all dependencies)
+./scripts/setup.sh
 
-# Terminal 2 - Frontend
-cd frontend && npm run dev
+# Start both backend and frontend
+./scripts/start.sh
+
+# Or start individually:
+./scripts/start-backend.sh   # Backend only (port 8080)
+./scripts/start-frontend.sh  # Frontend only (port 5173)
+
+# Stop all services
+./scripts/stop.sh
 ```
 
-4. Codespaces will auto-forward ports and show popup links to open the app
-
-### Using VS Code Dev Container (Local)
-
-1. Install [Docker](https://www.docker.com/products/docker-desktop/) and [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
-2. Clone the repo and open in VS Code
-3. Click **"Reopen in Container"** when prompted
-4. Wait for automatic setup, then run:
-
-```bash
-# Terminal 1 - Backend
-cd backend && mvn spring-boot:run
-
-# Terminal 2 - Frontend
-cd frontend && npm run dev
-```
+3. Access the application:
+   - 🌐 **Frontend**: http://localhost:5173
+   - ⚙️ **Backend API**: http://localhost:8080
+   - 🗄️ **H2 Console**: http://localhost:8080/h2-console
 
 ### Manual Setup (Without Containers)
 
@@ -98,6 +92,7 @@ npm run dev
 |---------|-----|
 | 🌐 Frontend | http://localhost:5173 |
 | ⚙️ Backend API | http://localhost:8080 |
+| 🗄️ H2 Console | http://localhost:8080/h2-console |
 
 ---
 

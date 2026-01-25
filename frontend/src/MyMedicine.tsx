@@ -58,7 +58,7 @@ export default function MyMedicine({ user }: { user: any }) {
     const [newMed, setNewMed] = useState({ 
         name: '', 
         dosage: '', 
-        time1: '08:00', 
+        time1: '', 
         time2: '', 
         time3: '', 
         durationDays: 30 
@@ -120,13 +120,17 @@ export default function MyMedicine({ user }: { user: any }) {
     };
 
     const addMedicine = async () => {
-        // Validation: Check that Morning Time (time1) is not empty
+        // Validation: Check that at least one time slot is provided
         if (!newMed.name) {
             setValidationErrors('Medicine name is required');
             return;
         }
-        if (!newMed.time1 || newMed.time1.trim() === '') {
-            setValidationErrors('Morning Time is mandatory and cannot be left empty');
+        
+        const hasAtLeastOneTime = (newMed.time1 && newMed.time1.trim() !== '') ||
+                                  (newMed.time2 && newMed.time2.trim() !== '') ||
+                                  (newMed.time3 && newMed.time3.trim() !== '');
+        if (!hasAtLeastOneTime) {
+            setValidationErrors('At least one time slot must be provided');
             return;
         }
         
@@ -146,7 +150,7 @@ export default function MyMedicine({ user }: { user: any }) {
                 playMedicineAlert('success');
                 sendSuccessNotification(`${newMed.name} added successfully!`);
                 
-                setNewMed({ name: '', dosage: '', time1: '08:00', time2: '', time3: '', durationDays: 30 });
+                setNewMed({ name: '', dosage: '', time1: '', time2: '', time3: '', durationDays: 30 });
                 setShowAddForm(false);
                 fetchAll();
             }
@@ -403,17 +407,13 @@ export default function MyMedicine({ user }: { user: any }) {
                             <div className="grid grid-cols-3 gap-3">
                                 <div>
                                     <label className="block text-sm font-medium text-green-600 mb-1">
-                                        🌅 Morning <span className="text-red-500 font-bold">*</span>
+                                        🌅 Morning
                                     </label>
                                     <input 
                                         type="time" 
                                         value={newMed.time1} 
                                         onChange={e => setNewMed({...newMed, time1: e.target.value})} 
-                                        className={`w-full p-3 border-2 rounded-xl focus:ring-2 focus:outline-none bg-green-50/50 ${
-                                            validationErrors.includes('Morning Time') 
-                                                ? 'border-red-400 focus:ring-red-400 focus:border-red-400' 
-                                                : 'border-green-200 focus:ring-green-400 focus:border-green-400'
-                                        }`}
+                                        className="w-full p-3 border-2 border-green-200 rounded-xl focus:ring-2 focus:ring-green-400 focus:border-green-400 focus:outline-none bg-green-50/50"
                                     />
                                 </div>
                                 <div>
