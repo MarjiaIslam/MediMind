@@ -9,6 +9,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.Random;
 import java.util.logging.Logger;
+import javax.naming.directory.Attributes;
+import javax.naming.directory.DirContext;
+import javax.naming.directory.InitialDirContext;
+import java.util.Hashtable;
 
 /**
  * Email Service for sending verification codes
@@ -126,38 +130,82 @@ public class EmailService {
             """, userName, resetCode);
     }
 
-    /**
-     * Validate if email domain exists using DNS MX record check
-     * This provides basic validation that the email domain is real
+       /**
+     * Validate if email domain exists by checking DNS MX records
+     * MX records indicate the domain can receive emails
+     * This catches fake domains like "fake@notreal123.com"
      */
     public boolean isValidEmailDomain(String email) {
         if (email == null || !email.contains("@")) {
             return false;
         }
 
-        String domain = email.substring(email.indexOf("@") + 1);
+        String domain = email.substring(email.indexOf("@") + 1).toLowerCase();
         
-        try {
-            // Check for common valid domains first
-            String[] commonDomains = {
-                "gmail.com", "yahoo.com", "hotmail.com", "outlook.com", 
-                "icloud.com", "mail.com", "protonmail.com", "aol.com",
-                "live.com", "msn.com", "ymail.com", "zoho.com",
-                "edu", "org", "gov" // Educational, organization, government domains
-            };
-            
-            for (String validDomain : commonDomains) {
-                if (domain.equalsIgnoreCase(validDomain) || domain.endsWith("." + validDomain)) {
-                    return true;
-                }
+        // Reject obviously fake/test domains
+        String[] blockedDomains = {
+            "test.com", "example.com", "fake.com", "temp.com", 
+            "mailinator.com", "guerrillamail.com", "10minutemail.com",
+            "throwaway.com", "tempmail.com", "fakeinbox.com"
+        };
+        
+        for (String blocked : blockedDomains) {
+            if (domain.equals(blocked)) {
+                logger.warning("Blocked disposable email domain: " + domain);
+                return false;
             }
+        }
 
-            // For other domains, try DNS lookup
-            java.net.InetAddress.getByName(domain);
-            return true;
-        } catch (Exception e) {
-            logger.warning("Invalid email domain: " + domain);
+        // Quick pass for well-known email providers
+        String[] trustedDomains = {
+            "gmail.com", "yahoo.com", "hotmail.com", "outlook.com", 
+            "icloud.com", "mail.com", "protonmail.com", "aol.com",
+            "live.com", "msn.com", "ymail.com", "zoho.com",
+            "yahoo.co.uk", "hotmail.co.uk", "outlook.co.uk",
+            "googlemail.com", "me.com", "mac.com"
+        };
+        
+        for (String trusted : trustedDomains) {
+            if (domain.equals(trusted)) {
+                return true;
+            }
+        }
+        
+        // For educational/corporate domains, check MX records
+        try {
+            // Check if domain has MX (Mail Exchange) records
+            // MX records mean the domain has mail servers and can receive email
+            Hashtable<String, String> env = new Hashtable<>();
+            env.put("java.naming.factory.initial", "com.sun.jndi.dns.DnsContextFactory");
+            env.put("com.sun.jndi.dns.timeout.initial", "3000");
+            env.put("com.sun.jndi.dns.timeout.retries", "1");
+            
+            DirContext ctx = new InitialDirContext(env);
+            Attributes attrs = ctx.getAttributes(domain, new String[]{"MX"});
+            ctx.close();
+            
+            // If MX records exist, the domain can receive emails
+            if (attrs.get("MX") != null && attrs.get("MX").size() > 0) {
+                logger.info("Valid email domain (has MX records): " + domain);
+                return true;
+            }
+            
+            // Some domains use A records instead of MX (fallback)
+            attrs = ctx.getAttributes(domain, new String[]{"A"});
+            if (attrs.get("A") != null) {
+                logger.info("Valid email domain (has A record): " + domain);
+                return true;
+            }
+            
+            logger.warning("Email domain has no mail servers: " + domain);
             return false;
+            
+        } catch (javax.naming.NameNotFoundException e) {
+            logger.warning("Email domain does not exist: " + domain);
+            return false;
+        } catch (Exception e) {
+            logger.warning("Could not verify email domain: " + domain + " - " + e.getMessage());
+            // Be lenient on network errors - allow the email
+            return true;
         }
     }
-}

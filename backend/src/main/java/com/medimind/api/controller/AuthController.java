@@ -34,9 +34,10 @@ public class AuthController {
             errors.put("email", "Please provide a valid email address");
         }
         
-        // Validate email domain exists
-        if (user.getEmail() != null && !emailService.isValidEmailDomain(user.getEmail())) {
-            errors.put("email", "This email domain doesn't exist. Please use a valid email address.");
+              // Validate email domain exists and can receive emails
+        if (user.getEmail() != null && EMAIL_PATTERN.matcher(user.getEmail()).matches() 
+            && !emailService.isValidEmailDomain(user.getEmail())) {
+            errors.put("email", "This email address does not exist. Please use a real email from a valid provider (Gmail, Yahoo, Outlook, etc.).");
         }
         
         // Check username length
