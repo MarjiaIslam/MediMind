@@ -3,6 +3,6 @@
 @tailwind utilities;
 
 body {
-    background-color: #f4f7f5; /* Sage-50 */
+    background-color: #f0fdfa; /* Teal-50 for fresh, modern look */
     font-family: 'Segoe UI', sans-serif;
 }
