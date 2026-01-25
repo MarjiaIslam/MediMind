@@ -47,6 +47,11 @@ public class User {
     private String notificationSound; // Sound file name for medicine reminders
     private boolean notificationsEnabled = true;
     
+    // Email Verification
+    private boolean emailVerified = false;
+    private String verificationCode;
+    private Long verificationCodeExpiry; // Unix timestamp
+    
     // Daily Stats
     private int dailyCalorieGoal = 2000;
     private int waterIntake = 0; 

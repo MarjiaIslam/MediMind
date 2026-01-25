@@ -208,14 +208,14 @@ export default function Dashboard({ user, logout }: { user: any, logout: () => v
                     </div>
 
                     {/* Medicine Card */}
-                    <div onClick={() => navigate('/medicine')} className="bg-gradient-to-br from-pink-400 to-purple-600 text-white rounded-2xl shadow-lg p-6 cursor-pointer transform hover:scale-105 hover:shadow-xl transition-all flex flex-col justify-center text-center">
+                    <div onClick={() => navigate('/medicine')} className="bg-gradient-to-br from-teal-400 to-cyan-600 text-white rounded-2xl shadow-lg p-6 cursor-pointer transform hover:scale-105 hover:shadow-xl transition-all flex flex-col justify-center text-center">
                         <Pill className="mx-auto mb-4 opacity-90" size={48} />
                         <h3 className="text-2xl font-bold mb-2">Medicine Cabinet</h3>
                         <p className="opacity-90 text-sm">Track your medicines, set reminders, and never miss a dose.</p>
                     </div>
 
                     {/* Journal Card */}
-                    <div onClick={() => navigate('/journal')} className="bg-gradient-to-br from-purple-400 to-indigo-600 text-white rounded-2xl shadow-lg p-6 cursor-pointer transform hover:scale-105 hover:shadow-xl transition-all flex flex-col justify-center text-center">
+                    <div onClick={() => navigate('/journal')} className="bg-gradient-to-br from-sky-400 to-blue-600 text-white rounded-2xl shadow-lg p-6 cursor-pointer transform hover:scale-105 hover:shadow-xl transition-all flex flex-col justify-center text-center">
                         <BookOpen className="mx-auto mb-4 opacity-90" size={48} />
                         <h3 className="text-2xl font-bold mb-2">Mood Journal</h3>
                         <p className="opacity-90 text-sm">Express yourself, track your emotions, and reflect on your journey.</p>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { CheckCircle, AlertCircle, Eye, EyeOff, Mail, RefreshCw } from 'lucide-react';
 
 function Auth({ setUser }: { setUser: any }) {
   const [isLogin, setIsLogin] = useState(true);
@@ -11,11 +11,64 @@ function Auth({ setUser }: { setUser: any }) {
   const [successMessage, setSuccessMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  
+  // Email verification states
+  const [showVerification, setShowVerification] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [resending, setResending] = useState(false);
+  
   const navigate = useNavigate();
 
   const validateEmail = (email: string) => {
     const re = /^[a-zA-Z0-9_+&*-]+(?:\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,7}$/;
     return re.test(email);
+  };
+
+  const handleVerifyEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSuccessMessage('');
+    
+    if (!verificationCode || verificationCode.length !== 6) {
+      setError('Please enter the 6-digit verification code');
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      const res = await axios.post('/api/auth/verify-email', {
+        email: verificationEmail,
+        code: verificationCode
+      });
+      
+      setSuccessMessage(res.data.message || 'Email verified successfully! You can now login.');
+      setShowVerification(false);
+      setVerificationCode('');
+      setIsLogin(true);
+      
+      // Pre-fill username for convenience
+      setFormData(prev => ({ ...prev, username: verificationEmail, password: '' }));
+    } catch (error: any) {
+      setError(error.response?.data?.error || 'Verification failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    setError('');
+    try {
+      setResending(true);
+      const res = await axios.post('/api/auth/resend-verification', {
+        email: verificationEmail
+      });
+      setSuccessMessage(res.data.message || 'Verification code sent! Check your email.');
+    } catch (error: any) {
+      setError(error.response?.data?.error || 'Failed to resend code. Please try again.');
+    } finally {
+      setResending(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -64,13 +117,18 @@ function Auth({ setUser }: { setUser: any }) {
       const res = await axios.post(url, payload);
       
       if (!isLogin) {
-        // Registration successful - show message and switch to login
-        setSuccessMessage('🎉 Registration successful! Please login with your credentials.');
-        setFormData({ username: formData.username, email: '', password: '', confirmPassword: '', fullName: '' });
-        setTimeout(() => {
-          setIsLogin(true);
-          setSuccessMessage('');
-        }, 2000);
+        // Registration successful - show verification screen
+        if (res.data.requiresVerification) {
+          setVerificationEmail(res.data.email || formData.email);
+          setShowVerification(true);
+          setSuccessMessage('📧 Verification code sent to your email! Please check your inbox.');
+        } else {
+          setSuccessMessage('🎉 Registration successful! Please login with your credentials.');
+          setTimeout(() => {
+            setIsLogin(true);
+            setSuccessMessage('');
+          }, 2000);
+        }
       } else {
         // Login successful
         setUser(res.data);
@@ -82,7 +140,15 @@ function Auth({ setUser }: { setUser: any }) {
         const status = error.response.status;
         const data = error.response.data;
         
-        if (status === 400 && typeof data === 'object') {
+        // Handle email verification required (403)
+        if (status === 403 && data?.requiresVerification) {
+          setVerificationEmail(data.email);
+          setShowVerification(true);
+          setError(data.error || 'Please verify your email to continue.');
+          return;
+        }
+        
+        if (status === 400 && typeof data === 'object' && !data.error) {
           // Field-specific errors from backend
           setFieldErrors(data);
         } else if (status === 401) {
@@ -103,6 +169,89 @@ function Auth({ setUser }: { setUser: any }) {
       setLoading(false);
     }
   };
+
+  // Verification screen
+  if (showVerification) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-sage-400 via-lavender-300 to-lavender-500 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-lavender-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Mail className="w-8 h-8 text-lavender-600" />
+            </div>
+            <h1 className="text-2xl font-bold text-sage-700">Verify Your Email</h1>
+            <p className="text-gray-600 mt-2">
+              We sent a 6-digit code to<br />
+              <span className="font-semibold text-lavender-600">{verificationEmail}</span>
+            </p>
+          </div>
+          
+          {successMessage && (
+            <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded mb-4 flex items-center gap-2">
+              <CheckCircle size={20} />
+              {successMessage}
+            </div>
+          )}
+          
+          {error && (
+            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 rounded mb-4 flex items-center gap-2">
+              <AlertCircle size={18} />
+              {error}
+            </div>
+          )}
+          
+          <form onSubmit={handleVerifyEmail} className="space-y-4">
+            <div>
+              <label className="block text-sage-700 font-medium mb-2">Verification Code</label>
+              <input
+                type="text"
+                placeholder="Enter 6-digit code"
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                className="w-full px-4 py-3 text-center text-2xl tracking-widest border-2 border-lavender-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-500"
+                maxLength={6}
+                required
+              />
+            </div>
+            
+            <button
+              type="submit"
+              disabled={loading || verificationCode.length !== 6}
+              className="w-full bg-gradient-to-r from-sage-500 to-lavender-500 text-white py-3 rounded-lg font-semibold hover:from-sage-600 hover:to-lavender-600 transition disabled:opacity-50"
+            >
+              {loading ? 'Verifying...' : 'Verify Email'}
+            </button>
+          </form>
+          
+          <div className="mt-6 text-center">
+            <p className="text-gray-600 mb-2">Didn't receive the code?</p>
+            <button
+              onClick={handleResendCode}
+              disabled={resending}
+              className="text-lavender-600 font-semibold hover:text-sage-600 flex items-center justify-center gap-2 mx-auto"
+            >
+              <RefreshCw size={16} className={resending ? 'animate-spin' : ''} />
+              {resending ? 'Sending...' : 'Resend Code'}
+            </button>
+          </div>
+          
+          <div className="mt-4 text-center">
+            <button
+              onClick={() => {
+                setShowVerification(false);
+                setVerificationCode('');
+                setError('');
+                setSuccessMessage('');
+              }}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              ← Back to {isLogin ? 'Login' : 'Register'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sage-400 via-lavender-300 to-lavender-500 flex items-center justify-center p-4">

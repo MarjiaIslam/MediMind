@@ -2,6 +2,7 @@ package com.medimind.api.controller;
 
 import com.medimind.api.model.User;
 import com.medimind.api.repository.UserRepository;
+import com.medimind.api.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,10 +16,14 @@ import java.util.regex.Pattern;
 @CrossOrigin(origins = "*")
 public class AuthController {
     @Autowired private UserRepository userRepository;
+    @Autowired private EmailService emailService;
     
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
         "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$"
     );
+
+    // Verification code validity duration (10 minutes)
+    private static final long CODE_VALIDITY_MS = 10 * 60 * 1000;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody User user) {
@@ -27,6 +32,11 @@ public class AuthController {
         // Validate email format
         if (user.getEmail() == null || !EMAIL_PATTERN.matcher(user.getEmail()).matches()) {
             errors.put("email", "Please provide a valid email address");
+        }
+        
+        // Validate email domain exists
+        if (user.getEmail() != null && !emailService.isValidEmailDomain(user.getEmail())) {
+            errors.put("email", "This email domain doesn't exist. Please use a valid email address.");
         }
         
         // Check username length
@@ -53,20 +63,96 @@ public class AuthController {
             return ResponseEntity.badRequest().body(errors);
         }
         
-        // Set default values
+        // Set default values - NO email verification required
         user.setPoints(50);
         user.setLevel("Bronze");
         user.setDailyCalorieGoal(2000);
         user.setNotificationsEnabled(true);
+        user.setEmailVerified(true); // Auto-verified - no email verification needed
+        user.setVerificationCode(null);
+        user.setVerificationCodeExpiry(null);
         
         User savedUser = userRepository.save(user);
         
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
-        response.put("message", "Registration successful! Please login with your credentials.");
+        response.put("requiresVerification", false);
+        response.put("message", "Registration successful! You can now login.");
         response.put("userId", savedUser.getId());
+        response.put("email", savedUser.getEmail());
         
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/verify-email")
+    public ResponseEntity<?> verifyEmail(@RequestBody Map<String, String> data) {
+        String email = data.get("email");
+        String code = data.get("code");
+        
+        if (email == null || code == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Email and verification code are required"));
+        }
+        
+        var userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("error", "Account not found"));
+        }
+        
+        User user = userOpt.get();
+        
+        // Check if already verified
+        if (user.isEmailVerified()) {
+            return ResponseEntity.ok(Map.of("success", true, "message", "Email is already verified. You can login now."));
+        }
+        
+        // Check verification code
+        if (user.getVerificationCode() == null || !user.getVerificationCode().equals(code)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid verification code"));
+        }
+        
+        // Check if code is expired
+        if (user.getVerificationCodeExpiry() != null && System.currentTimeMillis() > user.getVerificationCodeExpiry()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Verification code has expired. Please request a new one."));
+        }
+        
+        // Mark as verified
+        user.setEmailVerified(true);
+        user.setVerificationCode(null);
+        user.setVerificationCodeExpiry(null);
+        userRepository.save(user);
+        
+        return ResponseEntity.ok(Map.of("success", true, "message", "Email verified successfully! You can now login."));
+    }
+
+    @PostMapping("/resend-verification")
+    public ResponseEntity<?> resendVerification(@RequestBody Map<String, String> data) {
+        String email = data.get("email");
+        
+        if (email == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Email is required"));
+        }
+        
+        var userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("error", "Account not found with this email"));
+        }
+        
+        User user = userOpt.get();
+        
+        if (user.isEmailVerified()) {
+            return ResponseEntity.ok(Map.of("success", true, "message", "Email is already verified"));
+        }
+        
+        // Generate new code
+        String newCode = emailService.generateVerificationCode();
+        user.setVerificationCode(newCode);
+        user.setVerificationCodeExpiry(System.currentTimeMillis() + CODE_VALIDITY_MS);
+        userRepository.save(user);
+        
+        // Send email
+        emailService.sendVerificationEmail(user.getEmail(), newCode, user.getFullName());
+        
+        return ResponseEntity.ok(Map.of("success", true, "message", "Verification code sent! Please check your email."));
     }
 
     @PostMapping("/login")
@@ -92,6 +178,22 @@ public class AuthController {
         
         User user = userOpt.get();
         
+        // Check if email is verified
+        if (!user.isEmailVerified()) {
+            // Resend verification code
+            String newCode = emailService.generateVerificationCode();
+            user.setVerificationCode(newCode);
+            user.setVerificationCodeExpiry(System.currentTimeMillis() + CODE_VALIDITY_MS);
+            userRepository.save(user);
+            emailService.sendVerificationEmail(user.getEmail(), newCode, user.getFullName());
+            
+            return ResponseEntity.status(403).body(Map.of(
+                "error", "Email not verified. A new verification code has been sent to your email.",
+                "requiresVerification", true,
+                "email", user.getEmail()
+            ));
+        }
+        
         if (!user.getPassword().equals(password)) {
             return ResponseEntity.status(401).body(Map.of(
                 "error", "Incorrect password. Please try again."
@@ -104,6 +206,7 @@ public class AuthController {
         response.put("fullName", user.getFullName());
         response.put("username", user.getUsername());
         response.put("email", user.getEmail());
+        response.put("emailVerified", user.isEmailVerified());
         response.put("height", user.getHeight());
         response.put("weight", user.getWeight());
         response.put("age", user.getAge());
