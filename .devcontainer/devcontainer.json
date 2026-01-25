@@ -23,5 +23,10 @@
     }
   },
   "forwardPorts": [8080, 5173],
-  "postCreateCommand": "cd frontend && npm install && cd ../backend && mvn dependency:resolve -q && echo 'Environment Ready! Run: Backend: cd backend && mvn spring-boot:run | Frontend: cd frontend && npm run dev'"
+  "portsAttributes": {
+    "8080": { "label": "Backend API", "onAutoForward": "notify" },
+    "5173": { "label": "Frontend", "onAutoForward": "openBrowser" }
+  },
+  "postCreateCommand": "cd frontend && npm install && cd ../backend && mvn dependency:resolve -q",
+  "postAttachCommand": "echo '🏥 MediMind Ready! Run: npm run dev (frontend) | mvn spring-boot:run (backend)'"
 }
