@@ -36,21 +36,24 @@ Built with **Java Spring Boot** backend and **React TypeScript** frontend, MediM
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/MarjiaIslam/MediMind)
 
-1. Open in Codespaces or VS Code Dev Container. All dependencies (Java, Maven, Node.js, npm) are installed automatically.
-2. Start the backend and frontend in separate terminals:
+1. **Open in Codespaces** or VS Code Dev Container - All dependencies (Java 17, Maven, Node.js 20, npm) are installed automatically.
+
+2. **Start the application** in two separate terminals:
 
 ```bash
-# Terminal 1 (Backend)
+# Terminal 1 - Backend
 cd backend && mvn spring-boot:run
 
-# Terminal 2 (Frontend)
+# Terminal 2 - Frontend  
 cd frontend && npm run dev
 ```
 
-3. Access the application:
+3. **Access the application**:
    - 🌐 **Frontend**: http://localhost:5173
    - ⚙️ **Backend API**: http://localhost:8080
    - 🗄️ **H2 Console**: http://localhost:8080/h2-console
+
+> **Note**: The devcontainer automatically runs `npm install` for the frontend and downloads Maven dependencies during setup. Just run the commands above and you're ready to go!
 
 ### Manual Setup (Without Containers)
 

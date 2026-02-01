@@ -1,14 +1,14 @@
 {
   "name": "MediMind Stack",
-  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
   "features": {
     "ghcr.io/devcontainers/features/java:1": {
       "version": "17",
       "jdkDistro": "ms",
-      "installMaven": true
+      "installMaven": "true"
     },
     "ghcr.io/devcontainers/features/node:1": {
-      "version": "18"
+      "version": "20"
     }
   },
   "customizations": {
@@ -19,7 +19,11 @@
         "rangav.vscode-thunder-client",
         "dbaeumer.vscode-eslint",
         "bradlc.vscode-tailwindcss"
-      ]
+      ],
+      "settings": {
+        "java.configuration.updateBuildConfiguration": "automatic",
+        "java.compile.nullAnalysis.mode": "automatic"
+      }
     }
   },
   "forwardPorts": [8080, 5173],
@@ -27,6 +31,6 @@
     "8080": { "label": "Backend API", "onAutoForward": "notify" },
     "5173": { "label": "Frontend", "onAutoForward": "openBrowser" }
   },
-  "postCreateCommand": "cd /workspaces/MediMind/frontend && npm install && cd /workspaces/MediMind/backend && mvn clean install -DskipTests -q",
+  "postCreateCommand": "cd frontend && npm install && cd ../backend && mvn dependency:resolve -q",
   "postAttachCommand": "echo '🏥 MediMind Ready! Run backend: cd backend && mvn spring-boot:run | Run frontend: cd frontend && npm run dev'"
 }
