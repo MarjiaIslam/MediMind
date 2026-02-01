@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Trash2, CheckCircle, Circle, Plus, Clock, Bell, Calendar, X, Edit2, Activity } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -48,7 +48,10 @@ interface MedicineSummary {
     adherencePercentage: number;
 }
 
-export default function MyMedicine({ user }: { user: any }) {
+// Track which reminders have already been notified to avoid duplicate alerts
+const notifiedReminders = new Set<string>();
+
+export default function MyMedicine({ user, setUser }: { user: any, setUser: (u: any) => void }) {
     const [medicines, setMedicines] = useState<Medicine[]>([]);
     const [todayMeds, setTodayMeds] = useState<TodayMedicine[]>([]);
     const [summary, setSummary] = useState<MedicineSummary | null>(null);
@@ -66,6 +69,12 @@ export default function MyMedicine({ user }: { user: any }) {
     const [tab, setTab] = useState<'today' | 'all'>('today');
     const [validationErrors, setValidationErrors] = useState<string>('');
     const navigate = useNavigate();
+    
+    // Use ref to track the latest user data for achievement counting
+    const userRef = useRef(user);
+    useEffect(() => {
+        userRef.current = user;
+    }, [user]);
 
     useEffect(() => { 
         fetchAll();
@@ -73,8 +82,9 @@ export default function MyMedicine({ user }: { user: any }) {
         if ('Notification' in window && Notification.permission === 'default') {
             requestNotificationPermission();
         }
-        // Check reminders every minute
-        const interval = setInterval(checkReminders, 60000);
+        // Check reminders every 30 seconds for more accurate timing
+        checkReminders();
+        const interval = setInterval(checkReminders, 30000);
         return () => clearInterval(interval);
     }, []);
 
@@ -100,18 +110,41 @@ export default function MyMedicine({ user }: { user: any }) {
             const res = await axios.get(`/api/medicine/reminders/${user.id}`);
             const upcomingReminders = res.data as TodayMedicine[];
             
+            const now = new Date();
+            const currentHours = now.getHours();
+            const currentMinutes = now.getMinutes();
+            
             upcomingReminders.forEach((reminder: TodayMedicine) => {
-                if ('Notification' in window && Notification.permission === 'granted') {
-                    // Send notification with sound alert
-                    sendMedicineNotification(
-                        `💊 Medicine Reminder: ${reminder.medicineName}`,
-                        {
-                            body: `Dosage: ${reminder.dosage}\nScheduled time: ${formatTimeForDisplay(reminder.time)}`,
-                            playSound: true
-                        }
-                    );
-                    // Also play urgent alert
+                if (!reminder.time) return;
+                
+                // Parse the scheduled time (HH:mm format)
+                const [schedHours, schedMinutes] = reminder.time.split(':').map(Number);
+                
+                // Check if current time is within 1 minute of scheduled time
+                const scheduledTotalMins = schedHours * 60 + schedMinutes;
+                const currentTotalMins = currentHours * 60 + currentMinutes;
+                const timeDiff = Math.abs(currentTotalMins - scheduledTotalMins);
+                
+                // Create unique key to prevent duplicate notifications
+                const reminderKey = `${reminder.medicineId}-${reminder.slot}-${now.toDateString()}`;
+                
+                // Only notify if within 1 minute window and not already notified
+                if (timeDiff <= 1 && !notifiedReminders.has(reminderKey)) {
+                    notifiedReminders.add(reminderKey);
+                    
+                    // Play sound alert
                     playUrgentAlert();
+                    
+                    // Send browser notification
+                    if ('Notification' in window && Notification.permission === 'granted') {
+                        sendMedicineNotification(
+                            `💊 Time to take ${reminder.medicineName}!`,
+                            {
+                                body: `Dosage: ${reminder.dosage || 'As prescribed'}\nScheduled: ${formatTimeForDisplay(reminder.time)}`,
+                                playSound: true
+                            }
+                        );
+                    }
                 }
             });
         } catch (err) {
@@ -178,9 +211,48 @@ export default function MyMedicine({ user }: { user: any }) {
             // Play success sound when medicine is marked as taken
             playMedicineAlert('success');
             sendSuccessNotification('Medicine marked as taken ✓');
+            
+            // Check if all medicines for today are now taken and update achievements
+            await checkAndUpdateMedicineAchievements();
+            
             fetchAll();
         } catch (err) {
             console.error('Error toggling medicine:', err);
+        }
+    };
+
+    const checkAndUpdateMedicineAchievements = async () => {
+        try {
+            // Fetch latest summary to check if all doses are taken
+            const summaryRes = await axios.get(`/api/medicine/summary/${user.id}`);
+            const latestSummary = summaryRes.data;
+            
+            // If all doses are taken for today, increment perfectMedicineDays
+            if (latestSummary.totalDoses > 0 && latestSummary.takenDoses === latestSummary.totalDoses) {
+                const today = new Date().toDateString();
+                const lastPerfectMedicineDay = localStorage.getItem('lastPerfectMedicineDay');
+                
+                // Only count once per day
+                if (lastPerfectMedicineDay !== today) {
+                    localStorage.setItem('lastPerfectMedicineDay', today);
+                    
+                    // Use ref to get latest user data
+                    const currentUser = userRef.current;
+                    
+                    const updateData = {
+                        id: currentUser.id,
+                        perfectMedicineDays: (currentUser.perfectMedicineDays || 0) + 1
+                    };
+                    
+                    const res = await axios.put('/api/user/update', updateData);
+                    const updatedUser = { ...currentUser, ...res.data };
+                    setUser(updatedUser);
+                    localStorage.setItem('user', JSON.stringify(updatedUser));
+                    userRef.current = updatedUser;
+                }
+            }
+        } catch (err) {
+            console.error('Error updating medicine achievements:', err);
         }
     };
 

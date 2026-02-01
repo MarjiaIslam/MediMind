@@ -1,10 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Droplets, Plus, Minus } from 'lucide-react';
 
 export default function Hydration({ user, setUser }: { user: any, setUser: any }) {
     const [waterIntake, setWaterIntake] = useState(user.waterIntake || 0);
     const [message, setMessage] = useState('');
+    
+    // Use ref to track the latest user data for achievement counting
+    const userRef = useRef(user);
+    useEffect(() => {
+        userRef.current = user;
+    }, [user]);
 
     const dailyGoal = 8; // 8 glasses
     const glassSize = 250; // ml per glass
@@ -15,7 +21,7 @@ export default function Hydration({ user, setUser }: { user: any, setUser: any }
         if (waterIntake < dailyGoal) {
             const newIntake = waterIntake + 1;
             setWaterIntake(newIntake);
-            await saveWaterIntake(newIntake);
+            await saveWaterIntake(newIntake, true);
             if (newIntake === dailyGoal) {
                 setMessage('🎉 Great! You reached your daily water goal!');
                 setTimeout(() => setMessage(''), 3000);
@@ -27,15 +33,43 @@ export default function Hydration({ user, setUser }: { user: any, setUser: any }
         if (waterIntake > 0) {
             const newIntake = waterIntake - 1;
             setWaterIntake(newIntake);
-            await saveWaterIntake(newIntake);
+            await saveWaterIntake(newIntake, false);
         }
     };
 
-    const saveWaterIntake = async (intake: number) => {
+    const saveWaterIntake = async (intake: number, isAdding: boolean) => {
         try {
-            const res = await axios.put('/api/user/update', { ...user, waterIntake: intake });
-            setUser(res.data);
-            localStorage.setItem('user', JSON.stringify(res.data));
+            // Use ref to get latest user data
+            const currentUser = userRef.current;
+            
+            // Track time of day for morning/evening achievements
+            const hour = new Date().getHours();
+            const isMorning = hour >= 5 && hour < 12;
+            const isEvening = hour >= 18 && hour < 24;
+            
+            const updateData: any = { 
+                id: currentUser.id,
+                waterIntake: intake 
+            };
+            
+            // Increment totalWaterLogs only when adding water
+            if (isAdding) {
+                updateData.totalWaterLogs = (currentUser.totalWaterLogs || 0) + 1;
+                
+                // Track morning/evening logs
+                if (isMorning) {
+                    updateData.morningLogs = (currentUser.morningLogs || 0) + 1;
+                }
+                if (isEvening) {
+                    updateData.eveningLogs = (currentUser.eveningLogs || 0) + 1;
+                }
+            }
+            
+            const res = await axios.put('/api/user/update', updateData);
+            const updatedUser = { ...currentUser, ...res.data };
+            setUser(updatedUser);
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+            userRef.current = updatedUser;
         } catch (err) {
             console.error('Failed to save water intake:', err);
         }

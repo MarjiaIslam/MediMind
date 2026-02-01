@@ -1,106 +1,187 @@
 /**
  * Audio Notification Service
- * Provides sound alerts for medicine reminders
+ * Provides sound alerts for medicine reminders with customizable ringtones
  */
 
-// Create a simple beep sound using Web Audio API as fallback
-const createBeepSound = (): AudioBuffer => {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const sampleRate = audioContext.sampleRate;
-    const duration = 1; // 1 second
-    const frequency = 800; // Hz
-    const audioBuffer = audioContext.createBuffer(1, sampleRate * duration, sampleRate);
-    const data = audioBuffer.getChannelData(0);
-    
-    // Create sine wave
-    for (let i = 0; i < sampleRate * duration; i++) {
-        data[i] = Math.sin((2 * Math.PI * frequency * i) / sampleRate) * 0.3; // 30% volume
+// Sound types available for medicine reminders
+export type SoundType = 'default' | 'gentle' | 'bell' | 'melody' | 'urgent' | 'none';
+
+// Get user's preferred notification sound from localStorage
+export const getUserNotificationSound = (): SoundType => {
+    try {
+        const user = localStorage.getItem('user');
+        if (user) {
+            const userData = JSON.parse(user);
+            return (userData.notificationSound as SoundType) || 'default';
+        }
+    } catch (e) {
+        console.error('Error getting user notification sound:', e);
     }
-    
-    return audioBuffer;
+    return 'default';
 };
 
 /**
- * Play a sound alert for medicine reminder
+ * Play a specific ringtone type
+ * @param soundType - Type of sound to play
+ */
+export const playRingtone = async (soundType: SoundType = 'default'): Promise<void> => {
+    if (soundType === 'none') return;
+    
+    try {
+        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        
+        switch (soundType) {
+            case 'gentle':
+                await playGentleChime(audioContext);
+                break;
+            case 'bell':
+                await playBellSound(audioContext);
+                break;
+            case 'melody':
+                await playSoftMelody(audioContext);
+                break;
+            case 'urgent':
+                await playUrgentSound(audioContext);
+                break;
+            default:
+                await playDefaultSound(audioContext);
+        }
+    } catch (error) {
+        console.error('Error playing ringtone:', error);
+    }
+};
+
+// Default sound - two pleasant beeps
+const playDefaultSound = async (ctx: AudioContext): Promise<void> => {
+    const playBeep = (startTime: number, freq: number) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(0.3, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.3);
+        osc.start(startTime);
+        osc.stop(startTime + 0.3);
+    };
+    playBeep(ctx.currentTime, 800);
+    playBeep(ctx.currentTime + 0.35, 1000);
+};
+
+// Gentle chime - soft ascending tones
+const playGentleChime = async (ctx: AudioContext): Promise<void> => {
+    const notes = [523, 659, 784]; // C5, E5, G5
+    notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        const startTime = ctx.currentTime + i * 0.2;
+        gain.gain.setValueAtTime(0.2, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.4);
+        osc.start(startTime);
+        osc.stop(startTime + 0.4);
+    });
+};
+
+// Bell sound - rich harmonic bell tone
+const playBellSound = async (ctx: AudioContext): Promise<void> => {
+    const frequencies = [440, 880, 1320, 1760]; // Harmonics
+    const gains = [0.4, 0.2, 0.1, 0.05];
+    
+    frequencies.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(gains[i], ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 1.5);
+    });
+};
+
+// Soft melody - pleasant musical phrase
+const playSoftMelody = async (ctx: AudioContext): Promise<void> => {
+    const notes = [
+        { freq: 523, time: 0 },     // C5
+        { freq: 587, time: 0.15 },  // D5
+        { freq: 659, time: 0.3 },   // E5
+        { freq: 784, time: 0.45 },  // G5
+        { freq: 659, time: 0.6 },   // E5
+    ];
+    
+    notes.forEach(({ freq, time }) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        osc.type = 'triangle';
+        const startTime = ctx.currentTime + time;
+        gain.gain.setValueAtTime(0.25, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
+        osc.start(startTime);
+        osc.stop(startTime + 0.2);
+    });
+};
+
+// Urgent sound - attention-grabbing double beep
+const playUrgentSound = async (ctx: AudioContext): Promise<void> => {
+    for (let i = 0; i < 2; i++) {
+        const startTime = ctx.currentTime + i * 0.3;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = 900;
+        osc.type = 'square';
+        gain.gain.setValueAtTime(0.2, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.15);
+        osc.start(startTime);
+        osc.stop(startTime + 0.15);
+    }
+};
+
+/**
+ * Play a sound alert for medicine reminder using user's preferred sound
  * @param type - Type of alert: 'reminder' | 'success'
  */
 export const playMedicineAlert = async (type: 'reminder' | 'success' = 'reminder'): Promise<void> => {
-    try {
-        // Try using a simple beep from Web Audio API
-        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-        
-        const frequency = type === 'success' ? 1000 : 800; // Higher pitch for success
-        const duration = type === 'success' ? 0.3 : 0.5; // Shorter for success
-        const volume = 0.3;
-        
-        // Create oscillator for the beep
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.frequency.value = frequency;
-        oscillator.type = 'sine';
-        
-        gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-        
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + duration);
-    } catch (error) {
-        console.error('Error playing audio alert:', error);
-        // Fallback: Use system notification sound if available
-        fallbackNotificationSound();
+    const userSound = getUserNotificationSound();
+    
+    if (userSound === 'none') return;
+    
+    if (type === 'success') {
+        // Always use gentle chime for success
+        await playRingtone('gentle');
+    } else {
+        // Use user's preferred sound for reminders
+        await playRingtone(userSound);
     }
 };
 
 /**
  * Play a double beep alert (more noticeable)
- * Used for urgent reminders
+ * Used for urgent reminders - respects user's sound preference
  */
 export const playUrgentAlert = async (): Promise<void> => {
-    try {
-        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const frequency = 900;
-        const beepDuration = 0.2;
-        const pauseDuration = 0.1;
-        const volume = 0.4;
-        
-        // First beep
-        let oscillator = audioContext.createOscillator();
-        let gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        oscillator.frequency.value = frequency;
-        oscillator.type = 'sine';
-        
-        gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + beepDuration);
-        
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + beepDuration);
-        
-        // Second beep
-        const startTime = audioContext.currentTime + beepDuration + pauseDuration;
-        oscillator = audioContext.createOscillator();
-        gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        oscillator.frequency.value = frequency;
-        oscillator.type = 'sine';
-        
-        gainNode.gain.setValueAtTime(volume, startTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + beepDuration);
-        
-        oscillator.start(startTime);
-        oscillator.stop(startTime + beepDuration);
-    } catch (error) {
-        console.error('Error playing urgent alert:', error);
-        fallbackNotificationSound();
-    }
+    const userSound = getUserNotificationSound();
+    
+    if (userSound === 'none') return;
+    
+    // Play user's preferred sound, but repeat it for urgency
+    await playRingtone(userSound);
+    
+    // Play a second time after a short delay for urgency
+    setTimeout(() => {
+        playRingtone(userSound);
+    }, 800);
 };
 
 /**

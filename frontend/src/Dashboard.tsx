@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Droplets, Activity, Trophy, Coffee, Utensils, Pill, User, Scale, Heart, X, Target, TrendingDown, TrendingUp, Flame, LogOut, AlertTriangle, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -24,10 +24,16 @@ interface CalorieInfo {
     meals: { name: string; calories: number; time: string }[];
 }
 
-export default function Dashboard({ user, logout }: { user: any, logout: () => void }) {
+export default function Dashboard({ user, setUser, logout }: { user: any, setUser: (u: any) => void, logout: () => void }) {
     const navigate = useNavigate();
     const [medicineSummary, setMedicineSummary] = useState<MedicineSummary | null>(null);
     const [bmiInfo, setBmiInfo] = useState<BmiInfo | null>(null);
+    
+    // Use ref to track the latest user data for achievement counting
+    const userRef = useRef(user);
+    useEffect(() => {
+        userRef.current = user;
+    }, [user]);
     const [showCaloriesModal, setShowCaloriesModal] = useState(false);
     const [calorieInfo, setCalorieInfo] = useState<CalorieInfo | null>(null);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -39,6 +45,48 @@ export default function Dashboard({ user, logout }: { user: any, logout: () => v
             fetchCalorieInfo();
         }
     }, [user?.id]);
+
+    // Check for perfect day when component mounts or user data changes
+    useEffect(() => {
+        if (user?.id && medicineSummary) {
+            checkPerfectDay();
+        }
+    }, [user?.waterIntake, medicineSummary]);
+
+    const checkPerfectDay = async () => {
+        // A perfect day is when: water goal reached (8 glasses) AND all medicines taken
+        const waterGoalMet = (user.waterIntake || 0) >= 8;
+        const medicineGoalMet = medicineSummary && medicineSummary.totalDoses > 0 && 
+                                medicineSummary.takenDoses === medicineSummary.totalDoses;
+        
+        if (waterGoalMet && medicineGoalMet) {
+            const today = new Date().toDateString();
+            const lastPerfectDay = localStorage.getItem('lastPerfectDay');
+            
+            // Only count once per day
+            if (lastPerfectDay !== today) {
+                localStorage.setItem('lastPerfectDay', today);
+                
+                try {
+                    // Use ref to get latest user data
+                    const currentUser = userRef.current;
+                    
+                    const updateData = {
+                        id: currentUser.id,
+                        perfectDays: (currentUser.perfectDays || 0) + 1
+                    };
+                    
+                    const res = await axios.put('/api/user/update', updateData);
+                    const updatedUser = { ...currentUser, ...res.data };
+                    setUser(updatedUser);
+                    localStorage.setItem('user', JSON.stringify(updatedUser));
+                    userRef.current = updatedUser;
+                } catch (err) {
+                    console.error('Error updating perfect days:', err);
+                }
+            }
+        }
+    };
 
     const fetchCalorieInfo = async () => {
         try {

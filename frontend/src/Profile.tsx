@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Settings, Trash2, Camera, User, Bell, LogOut, ChevronRight, Scale, Heart, Calendar, Search, Plus, X } from 'lucide-react';
+import { Settings, Trash2, Camera, User, Bell, LogOut, ChevronRight, Scale, Heart, Calendar, Search, Plus, X, Volume2 } from 'lucide-react';
+import { playRingtone, SoundType } from './utils/audioNotification';
 
 interface JournalEntry {
     id: number;
@@ -24,11 +25,12 @@ interface BmiInfo {
 
 const profileIcons = ['👤', '😊', '🦊', '🐱', '🐶', '🐼', '🦁', '🐸', '🦉', '🐙', '🌸', '⭐', '🌈', '🎮', '🎨', '🎵'];
 const notificationSounds = [
-    { id: 'default', name: 'Default' },
+    { id: 'default', name: 'Default Beep' },
     { id: 'gentle', name: 'Gentle Chime' },
     { id: 'bell', name: 'Bell' },
     { id: 'melody', name: 'Soft Melody' },
-    { id: 'none', name: 'Silent' }
+    { id: 'urgent', name: 'Urgent Alert' },
+    { id: 'none', name: 'Silent (No Sound)' }
 ];
 
 export default function Profile({ user, setUser }: { user: any, setUser: any }) {
@@ -727,15 +729,27 @@ export default function Profile({ user, setUser }: { user: any, setUser: any }) 
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-pink-700 mb-2">🎵 Notification Sound</label>
-                                <select 
-                                    value={formData.notificationSound || 'default'}
-                                    onChange={e => setFormData({...formData, notificationSound: e.target.value})}
-                                    className="w-full p-4 border-2 border-pink-200 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-pink-400 focus:outline-none"
-                                >
-                                    {notificationSounds.map(sound => (
-                                        <option key={sound.id} value={sound.id}>{sound.name}</option>
-                                    ))}
-                                </select>
+                                <div className="flex gap-2">
+                                    <select 
+                                        value={formData.notificationSound || 'default'}
+                                        onChange={e => setFormData({...formData, notificationSound: e.target.value})}
+                                        className="flex-1 p-4 border-2 border-pink-200 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-pink-400 focus:outline-none"
+                                    >
+                                        {notificationSounds.map(sound => (
+                                            <option key={sound.id} value={sound.id}>{sound.name}</option>
+                                        ))}
+                                    </select>
+                                    <button
+                                        type="button"
+                                        onClick={() => playRingtone((formData.notificationSound || 'default') as SoundType)}
+                                        className="px-4 py-2 bg-gradient-to-r from-pink-500 to-orange-500 text-white rounded-xl hover:opacity-90 transition flex items-center gap-2 font-medium"
+                                        title="Preview sound"
+                                    >
+                                        <Volume2 size={20} />
+                                        Test
+                                    </button>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-2">This sound will play when it's time to take your medicine</p>
                             </div>
                         </div>
                     </div>

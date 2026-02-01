@@ -28,9 +28,9 @@ function App() {
         <Route path="/" element={!user ? <Auth setUser={setUser} /> : <Navigate to="/dashboard" />} />
         
         {/* Protected Routes */}
-        <Route path="/dashboard" element={user ? <Dashboard user={user} logout={handleLogout} /> : <Navigate to="/" />} />
+        <Route path="/dashboard" element={user ? <Dashboard user={user} setUser={setUser} logout={handleLogout} /> : <Navigate to="/" />} />
         <Route path="/meals" element={user ? <MealMate user={user} setUser={setUser} /> : <Navigate to="/" />} />
-        <Route path="/medicine" element={user ? <MyMedicine user={user} /> : <Navigate to="/" />} />
+        <Route path="/medicine" element={user ? <MyMedicine user={user} setUser={setUser} /> : <Navigate to="/" />} />
         <Route path="/profile" element={user ? <Profile user={user} setUser={setUser} /> : <Navigate to="/" />} />
         <Route path="/hydration" element={user ? <Hydration user={user} setUser={setUser} /> : <Navigate to="/" />} />
         <Route path="/badges" element={user ? <Badges user={user} setUser={setUser} /> : <Navigate to="/" />} />

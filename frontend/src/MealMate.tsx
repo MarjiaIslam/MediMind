@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { ChevronRight, Plus, Trash2, Edit2, Clock, ArrowLeft, Save, X, Loader } from 'lucide-react';
@@ -18,6 +18,12 @@ export default function MealMate({ user, setUser }: { user: any, setUser: any })
     const [meals, setMeals] = useState<Meal[]>([]);
     const [loading, setLoading] = useState(false);
     const [suggestions, setSuggestions] = useState<any[]>([]);
+    
+    // Use ref to track the latest user data for achievement counting
+    const userRef = useRef(user);
+    useEffect(() => {
+        userRef.current = user;
+    }, [user]);
     
     // Selection state
     const [selectedFoodItems, setSelectedFoodItems] = useState<string[]>([]);
@@ -104,6 +110,10 @@ export default function MealMate({ user, setUser }: { user: any, setUser: any })
         try {
             setLoading(true);
             await axios.post(`/api/meals/suggestions/log?userId=${user.id}&mealName=${encodeURIComponent(mealName)}`);
+            
+            // Update meal tracking for achievements
+            await updateMealAchievements();
+            
             alert('Meal logged successfully!');
             await fetchMealHistory();
             setStep('history');
@@ -115,6 +125,38 @@ export default function MealMate({ user, setUser }: { user: any, setUser: any })
             alert('Failed to log meal');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const updateMealAchievements = async () => {
+        try {
+            // Use ref to get latest user data
+            const currentUser = userRef.current;
+            
+            const hour = new Date().getHours();
+            const isMorning = hour >= 5 && hour < 12;
+            const isEvening = hour >= 18 && hour < 24;
+            
+            const updateData: any = {
+                id: currentUser.id,
+                totalMealsLogged: (currentUser.totalMealsLogged || 0) + 1
+            };
+            
+            // Track morning/evening logs
+            if (isMorning) {
+                updateData.morningLogs = (currentUser.morningLogs || 0) + 1;
+            }
+            if (isEvening) {
+                updateData.eveningLogs = (currentUser.eveningLogs || 0) + 1;
+            }
+            
+            const res = await axios.put('/api/user/update', updateData);
+            const updatedUser = { ...currentUser, ...res.data };
+            setUser(updatedUser);
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+            userRef.current = updatedUser;
+        } catch (err) {
+            console.error('Failed to update meal achievements:', err);
         }
     };
 
@@ -132,6 +174,10 @@ export default function MealMate({ user, setUser }: { user: any, setUser: any })
                 notes: formData.notes,
                 calories: formData.calories ? parseInt(formData.calories) : null
             });
+            
+            // Update meal tracking for achievements
+            await updateMealAchievements();
+            
             setFormData({ mealType: 'breakfast', foodItems: '', notes: '', calories: '' });
             await fetchMealHistory();
             alert('Meal logged successfully!');

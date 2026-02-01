@@ -64,21 +64,27 @@ public class AuthController {
             return ResponseEntity.badRequest().body(errors);
         }
         
-        // Set default values - NO email verification required
+        // Set default values
         user.setPoints(50);
         user.setLevel("Bronze");
         user.setDailyCalorieGoal(2000);
         user.setNotificationsEnabled(true);
-        user.setEmailVerified(true); // Auto-verified - no email verification needed
-        user.setVerificationCode(null);
-        user.setVerificationCodeExpiry(null);
+        
+        // Email verification required - generate code and send email
+        String verificationCode = emailService.generateVerificationCode();
+        user.setEmailVerified(false);
+        user.setVerificationCode(verificationCode);
+        user.setVerificationCodeExpiry(System.currentTimeMillis() + CODE_VALIDITY_MS);
         
         User savedUser = userRepository.save(user);
         
+        // Send verification email
+        emailService.sendVerificationEmail(savedUser.getEmail(), verificationCode, savedUser.getFullName());
+        
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
-        response.put("requiresVerification", false);
-        response.put("message", "Registration successful! You can now login.");
+        response.put("requiresVerification", true);
+        response.put("message", "Registration successful! Please check your email for the verification code.");
         response.put("userId", savedUser.getId());
         response.put("email", savedUser.getEmail());
         

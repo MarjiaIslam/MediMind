@@ -45,17 +45,17 @@ export default function Badges({ user, setUser }: { user: any, setUser: any }) {
 
     // More challenging achievements with tracking
     const achievements: Achievement[] = [
-        { id: 1, name: 'Hydration Hero', icon: '💧', description: 'Log water 50 times', color: 'from-blue-400 to-cyan-400', requirement: 50, current: Math.min(user.totalWaterLogs || 12, 50), points: 100, category: 'water' },
-        { id: 2, name: 'Meal Master', icon: '🍽️', description: 'Log 100 meals', color: 'from-orange-400 to-red-400', requirement: 100, current: Math.min(user.totalMealsLogged || 23, 100), points: 150, category: 'meals' },
+        { id: 1, name: 'Hydration Hero', icon: '💧', description: 'Log water 50 times', color: 'from-blue-400 to-cyan-400', requirement: 50, current: user.totalWaterLogs || 0, points: 100, category: 'water' },
+        { id: 2, name: 'Meal Master', icon: '🍽️', description: 'Log 100 meals', color: 'from-orange-400 to-red-400', requirement: 100, current: user.totalMealsLogged || 0, points: 150, category: 'meals' },
         { id: 3, name: 'Profile Pro', icon: '👤', description: 'Complete all health profile fields', color: 'from-green-400 to-emerald-400', requirement: 10, current: calculateProfileCompletion(user), points: 75, category: 'profile' },
         { id: 4, name: 'Streak Legend', icon: '🔥', description: 'Maintain 30-day streak', color: 'from-red-400 to-orange-400', requirement: 30, current: Math.min(dailyStreak.currentStreak, 30), points: 300, category: 'streak' },
         { id: 5, name: 'Week Warrior', icon: '⚡', description: 'Complete 7-day streak', color: 'from-yellow-400 to-amber-400', requirement: 7, current: Math.min(dailyStreak.currentStreak, 7), points: 50, category: 'streak' },
-        { id: 6, name: 'Medicine Champion', icon: '💊', description: 'Take all medicines on time for 14 days', color: 'from-teal-400 to-emerald-400', requirement: 14, current: Math.min(user.perfectMedicineDays || 5, 14), points: 200, category: 'medicine' },
+        { id: 6, name: 'Medicine Champion', icon: '💊', description: 'Take all medicines on time for 14 days', color: 'from-teal-400 to-emerald-400', requirement: 14, current: user.perfectMedicineDays || 0, points: 200, category: 'medicine' },
         { id: 7, name: 'Wellness Expert', icon: '🎓', description: 'Earn 500 points', color: 'from-purple-400 to-pink-400', requirement: 500, current: Math.min(points, 500), points: 100, category: 'points' },
-        { id: 8, name: 'Perfect Day Master', icon: '🌟', description: 'Complete all health goals 10 times', color: 'from-indigo-400 to-blue-400', requirement: 10, current: Math.min(user.perfectDays || 2, 10), points: 250, category: 'goals' },
-        { id: 9, name: 'Early Bird', icon: '🌅', description: 'Log morning activities 20 times', color: 'from-pink-400 to-rose-400', requirement: 20, current: Math.min(user.morningLogs || 8, 20), points: 75, category: 'activity' },
-        { id: 10, name: 'Night Owl', icon: '🦉', description: 'Complete evening routines 20 times', color: 'from-indigo-500 to-purple-500', requirement: 20, current: Math.min(user.eveningLogs || 6, 20), points: 75, category: 'activity' },
-        { id: 11, name: 'Health Scholar', icon: '📚', description: 'Write 25 journal entries', color: 'from-teal-400 to-cyan-400', requirement: 25, current: Math.min(user.journalEntries || 4, 25), points: 125, category: 'journal' },
+        { id: 8, name: 'Perfect Day Master', icon: '🌟', description: 'Complete all health goals 10 times', color: 'from-indigo-400 to-blue-400', requirement: 10, current: user.perfectDays || 0, points: 250, category: 'goals' },
+        { id: 9, name: 'Early Bird', icon: '🌅', description: 'Log morning activities 20 times', color: 'from-pink-400 to-rose-400', requirement: 20, current: user.morningLogs || 0, points: 75, category: 'activity' },
+        { id: 10, name: 'Night Owl', icon: '🦉', description: 'Complete evening routines 20 times', color: 'from-indigo-500 to-purple-500', requirement: 20, current: user.eveningLogs || 0, points: 75, category: 'activity' },
+        { id: 11, name: 'Health Scholar', icon: '📚', description: 'Write 25 journal entries', color: 'from-teal-400 to-cyan-400', requirement: 25, current: user.journalEntries || 0, points: 125, category: 'journal' },
         { id: 12, name: 'Consistency King', icon: '👑', description: 'Maintain 60-day streak', color: 'from-amber-400 to-yellow-500', requirement: 60, current: Math.min(dailyStreak.currentStreak, 60), points: 500, category: 'streak' },
     ];
 

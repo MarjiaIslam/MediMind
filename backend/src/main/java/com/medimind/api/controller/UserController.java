@@ -82,6 +82,16 @@ public class UserController {
                     if (updatedUser.getPoints() > 0) existing.setPoints(updatedUser.getPoints());
                     if (updatedUser.getLevel() != null) existing.setLevel(updatedUser.getLevel());
                     
+                    // Update achievement tracking fields - only update if new value is greater (incremental tracking)
+                    // This prevents resetting achievements when other components update user without sending these fields
+                    if (updatedUser.getTotalWaterLogs() > existing.getTotalWaterLogs()) existing.setTotalWaterLogs(updatedUser.getTotalWaterLogs());
+                    if (updatedUser.getTotalMealsLogged() > existing.getTotalMealsLogged()) existing.setTotalMealsLogged(updatedUser.getTotalMealsLogged());
+                    if (updatedUser.getPerfectMedicineDays() > existing.getPerfectMedicineDays()) existing.setPerfectMedicineDays(updatedUser.getPerfectMedicineDays());
+                    if (updatedUser.getPerfectDays() > existing.getPerfectDays()) existing.setPerfectDays(updatedUser.getPerfectDays());
+                    if (updatedUser.getMorningLogs() > existing.getMorningLogs()) existing.setMorningLogs(updatedUser.getMorningLogs());
+                    if (updatedUser.getEveningLogs() > existing.getEveningLogs()) existing.setEveningLogs(updatedUser.getEveningLogs());
+                    if (updatedUser.getJournalEntries() > existing.getJournalEntries()) existing.setJournalEntries(updatedUser.getJournalEntries());
+                    
                     // Update email if provided
                     if (updatedUser.getEmail() != null && !updatedUser.getEmail().isEmpty()) {
                         existing.setEmail(updatedUser.getEmail());

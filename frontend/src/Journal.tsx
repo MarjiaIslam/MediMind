@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Activity, BookOpen, Plus, Save, X, Search, Calendar, Tag, Smile, Meh, Frown, Heart, Star, Trash2, Edit2, ChevronDown } from 'lucide-react';
 import axios from 'axios';
@@ -28,6 +28,12 @@ const MOODS = [
 export default function Journal({ user, setUser }: { user: any, setUser: (u: any) => void }) {
     const navigate = useNavigate();
     const [entries, setEntries] = useState<JournalEntry[]>([]);
+    
+    // Use ref to track the latest user data for achievement counting
+    const userRef = useRef(user);
+    useEffect(() => {
+        userRef.current = user;
+    }, [user]);
     const [showAddForm, setShowAddForm] = useState(false);
     const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -88,10 +94,32 @@ export default function Journal({ user, setUser }: { user: any, setUser: (u: any
             setSaveSuccess(true);
             setTimeout(() => setSaveSuccess(false), 3000);
             
-            // Update user's journal entry count
-            const updatedUser = { ...user, journalEntries: (user.journalEntries || 0) + 1 };
+            // Use ref to get latest user data for accurate counting
+            const currentUser = userRef.current;
+            
+            // Update user's journal entry count and persist to backend
+            const hour = new Date().getHours();
+            const isMorning = hour >= 5 && hour < 12;
+            const isEvening = hour >= 18 && hour < 24;
+            
+            const updateData: any = { 
+                id: currentUser.id,
+                journalEntries: (currentUser.journalEntries || 0) + 1 
+            };
+            
+            // Track morning/evening logs
+            if (isMorning) {
+                updateData.morningLogs = (currentUser.morningLogs || 0) + 1;
+            }
+            if (isEvening) {
+                updateData.eveningLogs = (currentUser.eveningLogs || 0) + 1;
+            }
+            
+            const userRes = await axios.put('/api/user/update', updateData);
+            const updatedUser = { ...currentUser, ...userRes.data };
             setUser(updatedUser);
             localStorage.setItem('user', JSON.stringify(updatedUser));
+            userRef.current = updatedUser;
             
             // Refresh entries list from server to ensure sync
             fetchEntries();
@@ -125,11 +153,8 @@ export default function Journal({ user, setUser }: { user: any, setUser: (u: any
             // Show delete success message
             setDeleteSuccess(true);
             setTimeout(() => setDeleteSuccess(false), 3000);
-            
-            // Update user's journal entry count
-            const updatedUser = { ...user, journalEntries: Math.max(0, (user.journalEntries || 1) - 1) };
-            setUser(updatedUser);
-            localStorage.setItem('user', JSON.stringify(updatedUser));
+            // Note: We don't decrement journalEntries for achievements - 
+            // achievements track lifetime activity, not current count
         } catch (err) {
             console.error('Failed to delete entry:', err);
             alert('Failed to delete the journal entry. Please try again.');
