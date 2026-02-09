@@ -2,7 +2,6 @@ package com.medimind.api.controller;
 
 import com.medimind.api.model.User;
 import com.medimind.api.repository.UserRepository;
-import com.medimind.api.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,28 +15,23 @@ import java.util.regex.Pattern;
 @CrossOrigin(origins = "*")
 public class AuthController {
     @Autowired private UserRepository userRepository;
-    @Autowired private EmailService emailService;
     
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
         "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$"
     );
 
-    // Verification code validity duration (10 minutes)
-    private static final long CODE_VALIDITY_MS = 10 * 60 * 1000;
-
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody User user) {
         Map<String, String> errors = new HashMap<>();
         
+        // Validate full name
+        if (user.getFullName() == null || user.getFullName().trim().length() < 2) {
+            errors.put("fullName", "Please enter your full name");
+        }
+        
         // Validate email format
         if (user.getEmail() == null || !EMAIL_PATTERN.matcher(user.getEmail()).matches()) {
             errors.put("email", "Please provide a valid email address");
-        }
-        
-              // Validate email domain exists and can receive emails
-        if (user.getEmail() != null && EMAIL_PATTERN.matcher(user.getEmail()).matches() 
-            && !emailService.isValidEmailDomain(user.getEmail())) {
-            errors.put("email", "This email address does not exist. Please use a real email from a valid provider (Gmail, Yahoo, Outlook, etc.).");
         }
         
         // Check username length
@@ -52,12 +46,12 @@ public class AuthController {
         
         // Check if username already exists
         if (user.getUsername() != null && userRepository.findByUsername(user.getUsername()).isPresent()) {
-            errors.put("username", "Username is already taken. Please choose another one.");
+            errors.put("username", "Username is already taken");
         }
         
         // Check if email already exists
         if (user.getEmail() != null && userRepository.findByEmail(user.getEmail()).isPresent()) {
-            errors.put("email", "An account with this email already exists.");
+            errors.put("email", "An account with this email already exists");
         }
         
         if (!errors.isEmpty()) {
@@ -69,97 +63,15 @@ public class AuthController {
         user.setLevel("Bronze");
         user.setDailyCalorieGoal(2000);
         user.setNotificationsEnabled(true);
-        
-        // Email verification required - generate code and send email
-        String verificationCode = emailService.generateVerificationCode();
-        user.setEmailVerified(false);
-        user.setVerificationCode(verificationCode);
-        user.setVerificationCodeExpiry(System.currentTimeMillis() + CODE_VALIDITY_MS);
+        user.setEmailVerified(true); // No verification needed
         
         User savedUser = userRepository.save(user);
         
-        // Send verification email
-        emailService.sendVerificationEmail(savedUser.getEmail(), verificationCode, savedUser.getFullName());
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("requiresVerification", true);
-        response.put("message", "Registration successful! Please check your email for the verification code.");
-        response.put("userId", savedUser.getId());
-        response.put("email", savedUser.getEmail());
+        // Return success with user data for auto-login
+        Map<String, Object> response = buildUserResponse(savedUser);
+        response.put("message", "Account created successfully!");
         
         return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/verify-email")
-    public ResponseEntity<?> verifyEmail(@RequestBody Map<String, String> data) {
-        String email = data.get("email");
-        String code = data.get("code");
-        
-        if (email == null || code == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Email and verification code are required"));
-        }
-        
-        var userOpt = userRepository.findByEmail(email);
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.status(404).body(Map.of("error", "Account not found"));
-        }
-        
-        User user = userOpt.get();
-        
-        // Check if already verified
-        if (user.isEmailVerified()) {
-            return ResponseEntity.ok(Map.of("success", true, "message", "Email is already verified. You can login now."));
-        }
-        
-        // Check verification code
-        if (user.getVerificationCode() == null || !user.getVerificationCode().equals(code)) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Invalid verification code"));
-        }
-        
-        // Check if code is expired
-        if (user.getVerificationCodeExpiry() != null && System.currentTimeMillis() > user.getVerificationCodeExpiry()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Verification code has expired. Please request a new one."));
-        }
-        
-        // Mark as verified
-        user.setEmailVerified(true);
-        user.setVerificationCode(null);
-        user.setVerificationCodeExpiry(null);
-        userRepository.save(user);
-        
-        return ResponseEntity.ok(Map.of("success", true, "message", "Email verified successfully! You can now login."));
-    }
-
-    @PostMapping("/resend-verification")
-    public ResponseEntity<?> resendVerification(@RequestBody Map<String, String> data) {
-        String email = data.get("email");
-        
-        if (email == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Email is required"));
-        }
-        
-        var userOpt = userRepository.findByEmail(email);
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.status(404).body(Map.of("error", "Account not found with this email"));
-        }
-        
-        User user = userOpt.get();
-        
-        if (user.isEmailVerified()) {
-            return ResponseEntity.ok(Map.of("success", true, "message", "Email is already verified"));
-        }
-        
-        // Generate new code
-        String newCode = emailService.generateVerificationCode();
-        user.setVerificationCode(newCode);
-        user.setVerificationCodeExpiry(System.currentTimeMillis() + CODE_VALIDITY_MS);
-        userRepository.save(user);
-        
-        // Send email
-        emailService.sendVerificationEmail(user.getEmail(), newCode, user.getFullName());
-        
-        return ResponseEntity.ok(Map.of("success", true, "message", "Verification code sent! Please check your email."));
     }
 
     @PostMapping("/login")
@@ -179,27 +91,11 @@ public class AuthController {
         
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(404).body(Map.of(
-                "error", "Account not found. Please check your username/email or register first."
+                "error", "Account not found. Please check your credentials or sign up."
             ));
         }
         
         User user = userOpt.get();
-        
-        // Check if email is verified
-        if (!user.isEmailVerified()) {
-            // Resend verification code
-            String newCode = emailService.generateVerificationCode();
-            user.setVerificationCode(newCode);
-            user.setVerificationCodeExpiry(System.currentTimeMillis() + CODE_VALIDITY_MS);
-            userRepository.save(user);
-            emailService.sendVerificationEmail(user.getEmail(), newCode, user.getFullName());
-            
-            return ResponseEntity.status(403).body(Map.of(
-                "error", "Email not verified. A new verification code has been sent to your email.",
-                "requiresVerification", true,
-                "email", user.getEmail()
-            ));
-        }
         
         if (!user.getPassword().equals(password)) {
             return ResponseEntity.status(401).body(Map.of(
@@ -207,7 +103,10 @@ public class AuthController {
             ));
         }
         
-        // Return user data with calculated fields
+        return ResponseEntity.ok(buildUserResponse(user));
+    }
+    
+    private Map<String, Object> buildUserResponse(User user) {
         Map<String, Object> response = new HashMap<>();
         response.put("id", user.getId());
         response.put("fullName", user.getFullName());
@@ -242,7 +141,6 @@ public class AuthController {
         response.put("morningLogs", user.getMorningLogs());
         response.put("eveningLogs", user.getEveningLogs());
         response.put("journalEntries", user.getJournalEntries());
-        
-        return ResponseEntity.ok(response);
+        return response;
     }
 }

@@ -6,3 +6,81 @@ body {
     background-color: #f0fdfa; /* Teal-50 for fresh, modern look */
     font-family: 'Segoe UI', sans-serif;
 }
+
+/* Toast slide down animation */
+@keyframes slide-down {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -100%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+.animate-slide-down {
+    animation: slide-down 0.3s ease-out forwards;
+}
+
+/* Shake animation for error feedback */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+.animate-shake {
+    animation: shake 0.3s ease-in-out;
+}
+
+/* Floating orb animations */
+@keyframes float {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-30px) scale(1.05); }
+}
+
+@keyframes float-delayed {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-40px) scale(1.08); }
+}
+
+@keyframes float-slow {
+    0%, 100% { transform: translateY(0) translateX(0); }
+    33% { transform: translateY(-20px) translateX(10px); }
+    66% { transform: translateY(10px) translateX(-10px); }
+}
+
+.animate-float {
+    animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+    animation: float-delayed 8s ease-in-out infinite;
+    animation-delay: 2s;
+}
+
+.animate-float-slow {
+    animation: float-slow 10s ease-in-out infinite;
+}
+
+/* Gradient shift animation */
+@keyframes gradient-shift {
+    0%, 100% { 
+        background: linear-gradient(135deg, #10b981 0%, #14b8a6 50%, #06b6d4 100%);
+    }
+    25% {
+        background: linear-gradient(135deg, #059669 0%, #0d9488 50%, #0891b2 100%);
+    }
+    50% {
+        background: linear-gradient(135deg, #047857 0%, #0f766e 50%, #0e7490 100%);
+    }
+    75% {
+        background: linear-gradient(135deg, #059669 0%, #0d9488 50%, #0891b2 100%);
+    }
+}
+
+.animate-gradient-shift {
+    animation: gradient-shift 8s ease-in-out infinite;
+    background-size: 200% 200%;
+}

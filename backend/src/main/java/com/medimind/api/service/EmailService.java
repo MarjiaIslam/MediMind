@@ -2,10 +2,10 @@ package com.medimind.api.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import jakarta.mail.internet.MimeMessage;
 
 import java.util.Random;
 import java.util.logging.Logger;
@@ -15,8 +15,8 @@ import javax.naming.directory.InitialDirContext;
 import java.util.Hashtable;
 
 /**
- * Email Service for sending verification codes
- * Demonstrates async email sending with Spring Mail
+ * Professional Email Service for MediMind
+ * Sends beautiful HTML emails like Instagram/Facebook
  */
 @Service
 public class EmailService {
@@ -26,8 +26,11 @@ public class EmailService {
     @Autowired(required = false)
     private JavaMailSender mailSender;
 
-    @Value("${spring.mail.username:medimind.health@gmail.com}")
+    @Value("${spring.mail.username:}")
     private String fromEmail;
+    
+    @Value("${spring.mail.password:}")
+    private String mailPassword;
 
     /**
      * Generate a 6-digit verification code
@@ -37,97 +40,149 @@ public class EmailService {
         int code = 100000 + random.nextInt(900000);
         return String.valueOf(code);
     }
+    
+    /**
+     * Check if email service is properly configured
+     */
+    public boolean isEmailConfigured() {
+        return mailSender != null && fromEmail != null && !fromEmail.isEmpty() 
+               && mailPassword != null && !mailPassword.isEmpty();
+    }
 
     /**
-     * Send verification email asynchronously
-     * Uses @Async for non-blocking email delivery
+     * Send professional HTML verification email
+     * Returns true if email was sent successfully
      */
-    @Async
-    public void sendVerificationEmail(String toEmail, String verificationCode, String userName) {
-        logger.info("[Thread: " + Thread.currentThread().getName() + "] Sending verification email to: " + toEmail);
+    public boolean sendVerificationEmail(String toEmail, String verificationCode, String userName) {
+        logger.info("Sending verification email to: " + toEmail);
 
+        if (!isEmailConfigured()) {
+            logger.warning("EMAIL NOT CONFIGURED - Set MAIL_USERNAME and MAIL_PASSWORD");
+            logger.warning("Verification code for " + toEmail + ": " + verificationCode);
+            return false;
+        }
+        
         try {
-            if (mailSender != null) {
-                SimpleMailMessage message = new SimpleMailMessage();
-                message.setFrom(fromEmail);
-                message.setTo(toEmail);
-                message.setSubject("🏥 MediMind - Verify Your Email");
-                message.setText(buildEmailBody(userName, verificationCode));
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            
+            helper.setFrom(fromEmail, "MediMind");
+            helper.setTo(toEmail);
+            helper.setSubject("Your MediMind verification code: " + verificationCode);
+            helper.setText(buildHtmlEmail(userName, verificationCode, "verify"), true);
 
-                mailSender.send(message);
-                logger.info("[Thread: " + Thread.currentThread().getName() + "] Verification email sent successfully to: " + toEmail);
-            } else {
-                // Development mode - log the code instead of sending email
-                logger.warning("========================================");
-                logger.warning("EMAIL SERVICE NOT CONFIGURED (Dev Mode)");
-                logger.warning("Verification code for " + toEmail + ": " + verificationCode);
-                logger.warning("========================================");
-            }
+            mailSender.send(message);
+            logger.info("Verification email sent successfully to: " + toEmail);
+            return true;
         } catch (Exception e) {
-            // Log error but don't fail - verification code is still saved
-            logger.warning("Failed to send email to " + toEmail + ": " + e.getMessage());
-            logger.warning("Verification code (Dev Mode): " + verificationCode);
+            logger.severe("Failed to send email to " + toEmail + ": " + e.getMessage());
+            return false;
         }
     }
 
     /**
      * Send password reset email
      */
-    @Async
-    public void sendPasswordResetEmail(String toEmail, String resetCode, String userName) {
-        logger.info("[Thread: " + Thread.currentThread().getName() + "] Sending password reset email to: " + toEmail);
+    public boolean sendPasswordResetEmail(String toEmail, String resetCode, String userName) {
+        logger.info("Sending password reset email to: " + toEmail);
 
+        if (!isEmailConfigured()) {
+            logger.warning("Email not configured - Reset code for " + toEmail + ": " + resetCode);
+            return false;
+        }
+        
         try {
-            if (mailSender != null) {
-                SimpleMailMessage message = new SimpleMailMessage();
-                message.setFrom(fromEmail);
-                message.setTo(toEmail);
-                message.setSubject("🏥 MediMind - Password Reset");
-                message.setText(buildPasswordResetBody(userName, resetCode));
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            
+            helper.setFrom(fromEmail, "MediMind");
+            helper.setTo(toEmail);
+            helper.setSubject("Reset your MediMind password");
+            helper.setText(buildHtmlEmail(userName, resetCode, "reset"), true);
 
-                mailSender.send(message);
-                logger.info("Password reset email sent to: " + toEmail);
-            } else {
-                logger.warning("Password reset code for " + toEmail + ": " + resetCode);
-            }
+            mailSender.send(message);
+            logger.info("Password reset email sent to: " + toEmail);
+            return true;
         } catch (Exception e) {
-            logger.warning("Failed to send password reset email: " + e.getMessage());
+            logger.severe("Failed to send password reset email: " + e.getMessage());
+            return false;
         }
     }
 
-    private String buildEmailBody(String userName, String verificationCode) {
-        return String.format("""
-            Hi %s,
-            
-            Welcome to MediMind! 🏥
-            
-            Please verify your email address by entering this code:
-            
-            🔐 Verification Code: %s
-            
-            This code will expire in 10 minutes.
-            
-            If you didn't create an account with MediMind, please ignore this email.
-            
-            Stay healthy!
-            The MediMind Team
-            """, userName, verificationCode);
-    }
-
-    private String buildPasswordResetBody(String userName, String resetCode) {
-        return String.format("""
-            Hi %s,
-            
-            You requested to reset your password.
-            
-            🔐 Reset Code: %s
-            
-            This code will expire in 10 minutes.
-            
-            If you didn't request this, please ignore this email.
-            
-            The MediMind Team
-            """, userName, resetCode);
+    /**
+     * Build professional HTML email like Instagram/Facebook
+     */
+    private String buildHtmlEmail(String userName, String code, String type) {
+        String title = type.equals("verify") ? "Verify your email address" : "Reset your password";
+        String subtitle = type.equals("verify") 
+            ? "Thanks for signing up for MediMind! Please confirm your email address by entering the code below."
+            : "We received a request to reset your password. Enter the code below to continue.";
+        
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
+            <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f5f5f5;">
+                <table role="presentation" width="100%%" cellspacing="0" cellpadding="0" style="background-color: #f5f5f5; padding: 40px 20px;">
+                    <tr>
+                        <td align="center">
+                            <table role="presentation" width="100%%" cellspacing="0" cellpadding="0" style="max-width: 480px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                                <!-- Header -->
+                                <tr>
+                                    <td style="padding: 32px 40px 24px; text-align: center; border-bottom: 1px solid #f0f0f0;">
+                                        <div style="display: inline-block; background: linear-gradient(135deg, #68a676 0%%, #9b8ec4 100%%); padding: 12px 20px; border-radius: 8px;">
+                                            <span style="color: #ffffff; font-size: 20px; font-weight: 700; letter-spacing: -0.5px;">MediMind</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Content -->
+                                <tr>
+                                    <td style="padding: 32px 40px;">
+                                        <h1 style="margin: 0 0 16px; font-size: 22px; font-weight: 600; color: #1a1a1a; text-align: center;">
+                                            %s
+                                        </h1>
+                                        <p style="margin: 0 0 24px; font-size: 15px; line-height: 1.6; color: #666666; text-align: center;">
+                                            Hi %s, %s
+                                        </p>
+                                        
+                                        <!-- Code Box -->
+                                        <div style="background-color: #f8f9fa; border: 2px solid #e9ecef; border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0;">
+                                            <p style="margin: 0 0 8px; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 1px;">
+                                                Your verification code
+                                            </p>
+                                            <div style="font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #1a1a1a; font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;">
+                                                %s
+                                            </div>
+                                        </div>
+                                        
+                                        <p style="margin: 0; font-size: 13px; color: #999999; text-align: center;">
+                                            This code expires in <strong>10 minutes</strong>
+                                        </p>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Footer -->
+                                <tr>
+                                    <td style="padding: 24px 40px 32px; border-top: 1px solid #f0f0f0;">
+                                        <p style="margin: 0 0 8px; font-size: 13px; color: #999999; text-align: center;">
+                                            If you didn't request this, you can safely ignore this email.
+                                        </p>
+                                        <p style="margin: 0; font-size: 12px; color: #cccccc; text-align: center;">
+                                            MediMind - Your Digital Health Companion
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </body>
+            </html>
+            """.formatted(title, userName, subtitle, code);
     }
 
        /**

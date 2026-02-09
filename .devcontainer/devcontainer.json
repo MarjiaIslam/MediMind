@@ -32,5 +32,5 @@
     "5173": { "label": "Frontend", "onAutoForward": "openBrowser" }
   },
   "postCreateCommand": "cd frontend && npm install && cd ../backend && mvn dependency:resolve -q",
-  "postAttachCommand": "echo '🏥 MediMind Ready! Run backend: cd backend && mvn spring-boot:run | Run frontend: cd frontend && npm run dev'"
+  "postAttachCommand": "echo '🏥 MediMind Ready!' && echo 'Backend: cd backend && mvn spring-boot:run' && echo 'Frontend: cd frontend && npm run dev'"
 }

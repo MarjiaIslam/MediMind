@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![MediMind Banner](https://img.shields.io/badge/MediMind-Health%20Companion-4CAF50?style=for-the-badge&logo=heart&logoColor=white)
+![MediMind Banner](https://img.shields.io/badge/MediMind-Health%20Companion-14b8a6?style=for-the-badge&logo=heart&logoColor=white)
 
 [![Status](https://img.shields.io/badge/Status-Active-success?style=flat-square)](https://github.com/MarjiaIslam/MediMind)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.1-6DB33F?style=flat-square&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
@@ -30,6 +30,7 @@
 Built with **Java Spring Boot** backend and **React TypeScript** frontend, MediMind provides a seamless, responsive experience across devices.
 
 ---
+
 ## 🚀 Quick Start
 
 ### Using GitHub Codespaces or Dev Containers (Recommended)
@@ -44,14 +45,11 @@ Built with **Java Spring Boot** backend and **React TypeScript** frontend, MediM
 # Terminal 1 - Backend
 cd backend && mvn spring-boot:run
 
-# Terminal 2 - Frontend  
+# Terminal 2 - Frontend
 cd frontend && npm run dev
 ```
 
-3. **Access the application**:
-   - 🌐 **Frontend**: http://localhost:5173
-   - ⚙️ **Backend API**: http://localhost:8080
-   - 🗄️ **H2 Console**: http://localhost:8080/h2-console
+3. **Access the application** - See URLs below.
 
 > **Note**: The devcontainer automatically runs `npm install` for the frontend and downloads Maven dependencies during setup. Just run the commands above and you're ready to go!
 
