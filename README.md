@@ -49,10 +49,6 @@ cd backend && mvn spring-boot:run
 cd frontend && npm run dev
 ```
 
-3. **Access the application** - See URLs below.
-
-> **Note**: The devcontainer automatically runs `npm install` for the frontend and downloads Maven dependencies during setup. Just run the commands above and you're ready to go!
-
 ### Manual Setup (Without Containers)
 
 #### Prerequisites
