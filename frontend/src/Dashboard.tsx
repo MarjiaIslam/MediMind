@@ -315,146 +315,148 @@ export default function Dashboard({ user, setUser, logout }: { user: any, setUse
             {/* Calories Detail Modal */}
             {showCaloriesModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden relative">
-                        {/* Top Section - Big Calorie Display */}
-                        <div className="bg-gradient-to-br from-orange-400 via-amber-400 to-yellow-400 p-8 text-center relative">
-                            {/* Close button on the card */}
-                            <button 
-                                onClick={() => setShowCaloriesModal(false)} 
-                                className="absolute top-4 right-4 w-8 h-8 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center transition-all"
-                            >
-                                <X size={18} className="text-white" />
+                    <div className="bg-white rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-bold text-orange-600 flex items-center gap-2">
+                                <Flame /> Calorie Tracker
+                            </h2>
+                            <button onClick={() => setShowCaloriesModal(false)} className="text-gray-400 hover:text-gray-600">
+                                <X size={24} />
                             </button>
-
-                            <p className="text-white/80 text-sm font-medium mb-1">Today's Calories</p>
-                            <div className="flex items-baseline justify-center gap-1">
-                                <span className="text-6xl font-black text-white">{calorieInfo?.consumed || 0}</span>
-                                <span className="text-white/70 text-xl">/ {bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000}</span>
+                        </div>
+                        
+                        {/* Calorie Progress */}
+                        <div className="bg-gradient-to-r from-orange-100 to-amber-100 rounded-xl p-6 mb-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <div>
+                                    <p className="text-sm text-gray-600">Today's Intake</p>
+                                    <p className="text-4xl font-bold text-orange-600">{calorieInfo?.consumed || 0}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-sm text-gray-600">Daily Goal</p>
+                                    <p className="text-2xl font-bold text-gray-700">{bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000}</p>
+                                </div>
                             </div>
-                            
-                            {/* Progress Bar */}
-                            <div className="mt-4 bg-white/30 rounded-full h-3 overflow-hidden">
+                            <div className="w-full bg-white/50 rounded-full h-4 overflow-hidden">
                                 <div 
-                                    className={`h-full rounded-full transition-all duration-500 ${
+                                    className={`h-full transition-all rounded-full ${
                                         ((calorieInfo?.consumed || 0) / (bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000)) > 1 
                                             ? 'bg-red-500' 
-                                            : 'bg-white'
+                                            : 'bg-gradient-to-r from-orange-400 to-amber-400'
                                     }`}
                                     style={{ width: `${Math.min(100, ((calorieInfo?.consumed || 0) / (bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000)) * 100)}%` }}
                                 />
                             </div>
-                            <p className="text-white/90 text-sm mt-2 font-medium">
-                                {((calorieInfo?.consumed || 0) / (bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000) * 100).toFixed(0)}% of daily goal
-                            </p>
+                            <div className="flex justify-between mt-2 text-sm">
+                                <span className="text-gray-600">{((calorieInfo?.consumed || 0) / (bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000) * 100).toFixed(0)}% consumed</span>
+                                <span className={`font-medium ${(calorieInfo?.remaining || 0) < 0 ? 'text-red-500' : 'text-green-600'}`}>
+                                    {Math.abs((bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000) - (calorieInfo?.consumed || 0))} {(calorieInfo?.consumed || 0) > (bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000) ? 'over' : 'remaining'}
+                                </span>
+                            </div>
                         </div>
 
-                        <div className="p-6 space-y-4 overflow-y-auto max-h-[50vh]">
-                            {/* Status Message */}
-                            <div className={`p-4 rounded-2xl flex items-center gap-3 ${
-                                (calorieInfo?.consumed || 0) > (bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000)
-                                    ? 'bg-red-50 border-2 border-red-200'
-                                    : (calorieInfo?.consumed || 0) >= (bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000) * 0.8
-                                    ? 'bg-amber-50 border-2 border-amber-200'
-                                    : 'bg-green-50 border-2 border-green-200'
-                            }`}>
-                                <span className="text-3xl">
-                                    {(calorieInfo?.consumed || 0) > (bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000)
-                                        ? '😮'
-                                        : (calorieInfo?.consumed || 0) >= (bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000) * 0.8
-                                        ? '👍'
-                                        : '🥗'}
-                                </span>
-                                <div>
-                                    <p className={`font-bold ${
-                                        (calorieInfo?.consumed || 0) > (bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000)
-                                            ? 'text-red-700'
-                                            : (calorieInfo?.consumed || 0) >= (bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000) * 0.8
-                                            ? 'text-amber-700'
-                                            : 'text-green-700'
-                                    }`}>
-                                        {(calorieInfo?.consumed || 0) > (bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000)
-                                            ? `${(calorieInfo?.consumed || 0) - (bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000)} over limit!`
-                                            : `${(bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000) - (calorieInfo?.consumed || 0)} remaining`}
-                                    </p>
-                                    <p className="text-xs text-gray-500">
-                                        {(calorieInfo?.consumed || 0) > (bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000)
-                                            ? 'Consider lighter meals tomorrow'
-                                            : (calorieInfo?.consumed || 0) >= (bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000) * 0.8
-                                            ? 'Almost at your goal for today!'
-                                            : 'Keep going, you\'re doing great!'}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Quick Stats Row */}
-                            {bmiInfo && (
-                                <div className="flex gap-3">
-                                    <div className="flex-1 bg-purple-50 p-3 rounded-xl text-center border border-purple-100">
-                                        <p className="text-2xl font-bold text-purple-600">{parseFloat(bmiInfo.bmi.toFixed(1))}</p>
-                                        <p className="text-xs text-purple-500 font-medium">BMI</p>
+                        {/* BMI & Weight Goals */}
+                        {bmiInfo && (
+                            <div className="space-y-4 mb-6">
+                                <h3 className="font-bold text-gray-700 flex items-center gap-2">
+                                    <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center">
+                                        <Scale size={16} className="text-white" />
                                     </div>
-                                    <div className="flex-1 bg-emerald-50 p-3 rounded-xl text-center border border-emerald-100">
-                                        <p className="text-2xl font-bold text-emerald-600">{user.weight || '--'}<span className="text-sm">kg</span></p>
-                                        <p className="text-xs text-emerald-500 font-medium">Weight</p>
+                                    Body Metrics
+                                </h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-gradient-to-br from-purple-100 via-pink-50 to-purple-100 p-5 rounded-2xl text-center border border-purple-200 shadow-sm hover:shadow-md transition-all">
+                                        <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center mx-auto mb-2">
+                                            <span className="text-white font-bold text-sm">BMI</span>
+                                        </div>
+                                        <p className={`text-4xl font-bold ${getBmiColor(bmiInfo.category)}`}>{parseFloat(bmiInfo.bmi.toFixed(1))}</p>
+                                        <p className={`text-sm font-semibold mt-1 px-3 py-1 rounded-full inline-block ${
+                                            bmiInfo.category === 'Normal' ? 'bg-green-100 text-green-600' :
+                                            bmiInfo.category === 'Underweight' ? 'bg-yellow-100 text-yellow-600' :
+                                            bmiInfo.category === 'Overweight' ? 'bg-orange-100 text-orange-600' :
+                                            'bg-red-100 text-red-600'
+                                        }`}>{bmiInfo.category}</p>
                                     </div>
-                                    <div className="flex-1 bg-blue-50 p-3 rounded-xl text-center border border-blue-100">
-                                        <p className="text-2xl font-bold text-blue-600">{user.targetWeight || '--'}<span className="text-sm">kg</span></p>
-                                        <p className="text-xs text-blue-500 font-medium">Target</p>
+                                    <div className="bg-gradient-to-br from-emerald-100 via-teal-50 to-emerald-100 p-5 rounded-2xl text-center border border-emerald-200 shadow-sm hover:shadow-md transition-all">
+                                        <div className="w-12 h-12 rounded-full bg-gradient-to-r from-emerald-400 to-teal-400 flex items-center justify-center mx-auto mb-2">
+                                            <span className="text-xl">⚖️</span>
+                                        </div>
+                                        <p className="text-4xl font-bold text-emerald-600">
+                                            {user.weight ? Math.round(user.weight) : '--'} <span className="text-xl">kg</span>
+                                        </p>
+                                        {user.targetWeight && (
+                                            <p className="text-sm mt-2 bg-white/60 rounded-full px-3 py-1 text-emerald-700 font-medium">
+                                                🎯 Goal: {Math.round(user.targetWeight)} kg
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
-                            )}
-
-                            {/* Weight Progress */}
-                            {user.targetWeight && user.weight && (
-                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                                    <div className="flex justify-between items-center mb-2">
-                                        <span className="text-sm font-medium text-gray-700">Weight Progress</span>
-                                        <span className="text-xs font-bold px-2 py-1 rounded-full bg-gray-200 text-gray-700">
-                                            {user.weight > user.targetWeight 
-                                                ? `${Math.round(user.weight - user.targetWeight)}kg to lose` 
-                                                : user.weight < user.targetWeight 
-                                                ? `${Math.round(user.targetWeight - user.weight)}kg to gain`
-                                                : '🎯 Goal!'}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-xs text-gray-500 w-12">{Math.min(user.weight, user.targetWeight)}kg</span>
-                                        <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
+                                
+                                {/* Weight Goals */}
+                                {user.targetWeight && user.weight && (
+                                    <div className="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 p-5 rounded-2xl border border-purple-200">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <span className="text-sm text-gray-700 font-medium flex items-center gap-2">
+                                                <Target size={16} className="text-purple-500" /> Weight Goal Progress
+                                            </span>
+                                            <span className="text-sm font-bold">
+                                                {user.weight > user.targetWeight ? (
+                                                    <span className="bg-gradient-to-r from-orange-400 to-red-400 text-white px-3 py-1 rounded-full flex items-center gap-1">
+                                                        <TrendingDown size={14} /> {Math.round(user.weight - user.targetWeight)} kg to lose
+                                                    </span>
+                                                ) : user.weight < user.targetWeight ? (
+                                                    <span className="bg-gradient-to-r from-purple-400 to-indigo-400 text-white px-3 py-1 rounded-full flex items-center gap-1">
+                                                        <TrendingUp size={14} /> {Math.round(user.targetWeight - user.weight)} kg to gain
+                                                    </span>
+                                                ) : (
+                                                    <span className="bg-gradient-to-r from-green-400 to-emerald-400 text-white px-3 py-1 rounded-full">🎉 Goal reached!</span>
+                                                )}
+                                            </span>
+                                        </div>
+                                        <div className="w-full bg-white/60 rounded-full h-3 overflow-hidden shadow-inner">
                                             <div 
-                                                className="h-full bg-gradient-to-r from-orange-400 to-amber-400 rounded-full"
+                                                className="h-full bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 rounded-full transition-all"
                                                 style={{ 
-                                                    width: `${Math.min(100, (user.weight / user.targetWeight) * 100)}%` 
+                                                    width: `${Math.min(100, Math.max(0, 
+                                                        user.weight > user.targetWeight 
+                                                            ? ((user.weight - Math.max(user.weight - 10, user.targetWeight)) / 10) * 100
+                                                            : ((user.weight - Math.min(user.weight - 10, 0)) / (user.targetWeight - Math.min(user.weight - 10, 0))) * 100
+                                                    ))}%` 
                                                 }}
                                             />
                                         </div>
-                                        <span className="text-xs text-gray-500 w-12 text-right">{Math.max(user.weight, user.targetWeight)}kg</span>
                                     </div>
-                                </div>
-                            )}
-
-                            {/* Tip of the day */}
-                            <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 flex gap-3 items-start">
-                                <span className="text-2xl">💡</span>
-                                <div>
-                                    <p className="font-semibold text-amber-800 text-sm">Tip of the day</p>
-                                    <p className="text-xs text-amber-700 mt-1">
-                                        {user.weight > user.targetWeight 
-                                            ? 'A deficit of 500 kcal/day helps lose ~0.5kg per week safely.'
-                                            : user.weight < user.targetWeight
-                                            ? 'Add 300-500 extra calories daily for healthy weight gain.'
-                                            : 'Great job! Maintain your intake to stay at your ideal weight.'}
+                                )}
+                                
+                                {/* Healthy Range Info */}
+                                <div className="bg-gradient-to-r from-amber-50 via-yellow-50 to-orange-50 p-5 rounded-2xl border border-amber-200">
+                                    <p className="font-bold text-amber-700 mb-2 flex items-center gap-2">
+                                        <span className="text-xl">💡</span> Healthy Calorie Tips
                                     </p>
+                                    <ul className="text-amber-700 text-sm space-y-2">
+                                        <li className="flex items-start gap-2">
+                                            <span className="bg-amber-200 rounded-full w-5 h-5 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">1</span>
+                                            Your recommended intake is based on your BMI and activity level
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="bg-amber-200 rounded-full w-5 h-5 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">2</span>
+                                            Eat 200-500 fewer calories daily to lose ~0.5kg/week
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="bg-amber-200 rounded-full w-5 h-5 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">3</span>
+                                            Add 300-500 calories to gain muscle mass healthily
+                                        </li>
+                                    </ul>
                                 </div>
                             </div>
+                        )}
 
-                            {/* Action Button */}
-                            <button 
-                                onClick={() => { setShowCaloriesModal(false); navigate('/meals'); }}
-                                className="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white py-4 rounded-2xl font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2"
-                            >
-                                <Utensils size={20} /> Log a Meal
-                            </button>
-                        </div>
+                        <button 
+                            onClick={() => { setShowCaloriesModal(false); navigate('/meals'); }}
+                            className="w-full bg-gradient-to-r from-orange-400 to-amber-400 text-white py-3 rounded-xl font-semibold hover:from-orange-500 hover:to-amber-500"
+                        >
+                            Log a Meal
+                        </button>
                     </div>
                 </div>
             )}
