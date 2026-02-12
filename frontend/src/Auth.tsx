@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle, Eye, EyeOff, Loader2, User, Lock, Mail, AtSign, Heart, Shield, UserPlus, Bell } from 'lucide-react';
+import { AlertCircle, Eye, EyeOff, Loader2, User, Lock, Mail, AtSign, Heart, Shield, UserPlus, Bell, KeyRound, ArrowLeft, CheckCircle } from 'lucide-react';
 
 function Auth({ setUser }: { setUser: any }) {
   const [isLogin, setIsLogin] = useState(true);
@@ -14,8 +14,22 @@ function Auth({ setUser }: { setUser: any }) {
   });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  
+  // Forgot password states
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotError, setForgotError] = useState('');
+  const [forgotSuccess, setForgotSuccess] = useState('');
   
   const navigate = useNavigate();
 
@@ -63,6 +77,7 @@ function Auth({ setUser }: { setUser: any }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setGeneralError('');
+    setSuccessMessage('');
     
     if (!validateForm()) return;
 
@@ -80,10 +95,17 @@ function Auth({ setUser }: { setUser: any }) {
       
       const res = await axios.post(url, payload);
       
-      // Both login and register return user data - auto login
-      setUser(res.data);
-      localStorage.setItem('user', JSON.stringify(res.data));
-      navigate('/dashboard');
+      if (isLogin) {
+        // Login - set user and go to dashboard
+        setUser(res.data);
+        localStorage.setItem('user', JSON.stringify(res.data));
+        navigate('/dashboard');
+      } else {
+        // Registration - show success and switch to login
+        setSuccessMessage('Account created successfully! Please login to continue.');
+        setFormData({ username: '', email: '', password: '', confirmPassword: '', fullName: '' });
+        setIsLogin(true);
+      }
       
     } catch (error: any) {
       const status = error.response?.status;
@@ -104,61 +126,93 @@ function Auth({ setUser }: { setUser: any }) {
     }
   };
 
+  const handleForgotPassword = async () => {
+    setForgotError('');
+    setForgotSuccess('');
+    
+    if (!forgotEmail.trim()) {
+      setForgotError('Please enter your email address');
+      return;
+    }
+    
+    if (!validateEmail(forgotEmail)) {
+      setForgotError('Please enter a valid email address');
+      return;
+    }
+    
+    try {
+      setForgotLoading(true);
+      await axios.post('/api/auth/forgot-password', { email: forgotEmail });
+      setOtpSent(true);
+      setForgotSuccess('OTP sent to your email. Please check your inbox.');
+    } catch (error: any) {
+      setForgotError(error.response?.data?.error || 'Failed to send OTP. Please try again.');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    setForgotError('');
+    setForgotSuccess('');
+    
+    if (!otp.trim()) {
+      setForgotError('Please enter the OTP');
+      return;
+    }
+    
+    if (newPassword.length < 6) {
+      setForgotError('Password must be at least 6 characters');
+      return;
+    }
+    
+    if (newPassword !== confirmNewPassword) {
+      setForgotError('Passwords do not match');
+      return;
+    }
+    
+    try {
+      setForgotLoading(true);
+      await axios.post('/api/auth/reset-password', {
+        email: forgotEmail,
+        otp: otp,
+        newPassword: newPassword
+      });
+      setForgotSuccess('Password reset successfully! You can now login.');
+      setTimeout(() => {
+        setShowForgotPassword(false);
+        setOtpSent(false);
+        setForgotEmail('');
+        setOtp('');
+        setNewPassword('');
+        setConfirmNewPassword('');
+        setForgotSuccess('');
+      }, 2000);
+    } catch (error: any) {
+      setForgotError(error.response?.data?.error || 'Failed to reset password. Please try again.');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
   const switchMode = () => {
     setIsLogin(!isLogin);
     setFieldErrors({});
     setGeneralError('');
+    setSuccessMessage('');
     setFormData({ username: '', email: '', password: '', confirmPassword: '', fullName: '' });
   };
 
-  const InputField = ({ 
-    icon: Icon, 
-    label, 
-    name,
-    type = 'text',
-    placeholder,
-    value,
-    onChange,
-    autoComplete
-  }: { 
-    icon: any; 
-    label: string; 
-    name: string;
-    type?: string;
-    placeholder: string;
-    value: string;
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    autoComplete?: string;
-  }) => (
-    <div className="space-y-1.5">
-      <label className="block text-sm font-semibold text-teal-700">{label}</label>
-      <div className="relative group">
-        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-teal-400 group-focus-within:text-teal-600 transition-colors">
-          <Icon size={18} />
-        </div>
-        <input
-          type={type}
-          name={name}
-          placeholder={placeholder}
-          value={value}
-          onChange={onChange}
-          autoComplete={autoComplete}
-          className={`w-full pl-10 pr-4 py-3.5 bg-white border-2 rounded-2xl text-gray-800 placeholder-gray-400 
-            transition-all duration-300 focus:outline-none focus:scale-[1.01] shadow-sm
-            ${fieldErrors[name] 
-              ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' 
-              : 'border-teal-200 focus:border-teal-400 focus:ring-2 focus:ring-teal-100'
-            }`}
-        />
-      </div>
-      {fieldErrors[name] && (
-        <p className="text-red-500 text-xs flex items-center gap-1">
-          <AlertCircle size={12} />
-          {fieldErrors[name]}
-        </p>
-      )}
-    </div>
-  );
+  const resetForgotPassword = () => {
+    setShowForgotPassword(false);
+    setOtpSent(false);
+    setForgotEmail('');
+    setOtp('');
+    setNewPassword('');
+    setConfirmNewPassword('');
+    setForgotError('');
+    setForgotSuccess('');
+  };
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50">
@@ -220,52 +274,137 @@ function Auth({ setUser }: { setUser: any }) {
                   {generalError}
                 </div>
               )}
+              
+              {successMessage && (
+                <div className="bg-green-50 border border-green-200 rounded-xl p-3 flex items-center gap-2 text-green-700 text-sm">
+                  <CheckCircle size={16} />
+                  {successMessage}
+                </div>
+              )}
           
               {!isLogin && (
                 <>
-                  <InputField
-                    icon={User}
-                    label="Full Name"
-                    name="fullName"
-                    placeholder="John Doe"
-                    value={formData.fullName}
-                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                    autoComplete="name"
-                  />
+                  {/* Full Name */}
+                  <div className="space-y-1.5">
+                    <label className="block text-sm font-semibold text-teal-700">Full Name</label>
+                    <div className="relative group">
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-teal-400 group-focus-within:text-teal-600 transition-colors">
+                        <User size={18} />
+                      </div>
+                      <input
+                        type="text"
+                        name="fullName"
+                        placeholder="John Doe"
+                        value={formData.fullName}
+                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                        autoComplete="name"
+                        className={`w-full pl-10 pr-4 py-3.5 bg-white border-2 rounded-2xl text-gray-800 placeholder-gray-400 
+                          transition-all duration-300 focus:outline-none focus:scale-[1.01] shadow-sm
+                          ${fieldErrors.fullName 
+                            ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' 
+                            : 'border-teal-200 focus:border-teal-400 focus:ring-2 focus:ring-teal-100'
+                          }`}
+                      />
+                    </div>
+                    {fieldErrors.fullName && (
+                      <p className="text-red-500 text-xs flex items-center gap-1">
+                        <AlertCircle size={12} />
+                        {fieldErrors.fullName}
+                      </p>
+                    )}
+                  </div>
                   
-                  <InputField
-                    icon={Mail}
-                    label="Email Address"
-                    name="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    autoComplete="email"
-                  />
+                  {/* Email */}
+                  <div className="space-y-1.5">
+                    <label className="block text-sm font-semibold text-teal-700">Email Address</label>
+                    <div className="relative group">
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-teal-400 group-focus-within:text-teal-600 transition-colors">
+                        <Mail size={18} />
+                      </div>
+                      <input
+                        type="email"
+                        name="email"
+                        placeholder="you@example.com"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        autoComplete="email"
+                        className={`w-full pl-10 pr-4 py-3.5 bg-white border-2 rounded-2xl text-gray-800 placeholder-gray-400 
+                          transition-all duration-300 focus:outline-none focus:scale-[1.01] shadow-sm
+                          ${fieldErrors.email 
+                            ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' 
+                            : 'border-teal-200 focus:border-teal-400 focus:ring-2 focus:ring-teal-100'
+                          }`}
+                      />
+                    </div>
+                    {fieldErrors.email && (
+                      <p className="text-red-500 text-xs flex items-center gap-1">
+                        <AlertCircle size={12} />
+                        {fieldErrors.email}
+                      </p>
+                    )}
+                  </div>
                   
-                  <InputField
-                    icon={AtSign}
-                    label="Username"
-                    name="username"
-                    placeholder="johndoe"
-                    value={formData.username}
-                    onChange={(e) => setFormData({ ...formData, username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') })}
-                    autoComplete="username"
-                  />
+                  {/* Username */}
+                  <div className="space-y-1.5">
+                    <label className="block text-sm font-semibold text-teal-700">Username</label>
+                    <div className="relative group">
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-teal-400 group-focus-within:text-teal-600 transition-colors">
+                        <AtSign size={18} />
+                      </div>
+                      <input
+                        type="text"
+                        name="username"
+                        placeholder="johndoe"
+                        value={formData.username}
+                        onChange={(e) => setFormData({ ...formData, username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') })}
+                        autoComplete="username"
+                        className={`w-full pl-10 pr-4 py-3.5 bg-white border-2 rounded-2xl text-gray-800 placeholder-gray-400 
+                          transition-all duration-300 focus:outline-none focus:scale-[1.01] shadow-sm
+                          ${fieldErrors.username 
+                            ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' 
+                            : 'border-teal-200 focus:border-teal-400 focus:ring-2 focus:ring-teal-100'
+                          }`}
+                      />
+                    </div>
+                    {fieldErrors.username && (
+                      <p className="text-red-500 text-xs flex items-center gap-1">
+                        <AlertCircle size={12} />
+                        {fieldErrors.username}
+                      </p>
+                    )}
+                  </div>
                 </>
               )}
               
               {isLogin && (
-                <InputField
-                  icon={User}
-                  label="Username or Email"
-                  name="username"
-                  placeholder="Enter your username or email"
-                  value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  autoComplete="username"
-                />
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-semibold text-teal-700">Username or Email</label>
+                  <div className="relative group">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-teal-400 group-focus-within:text-teal-600 transition-colors">
+                      <User size={18} />
+                    </div>
+                    <input
+                      type="text"
+                      name="username"
+                      placeholder="Enter your username or email"
+                      value={formData.username}
+                      onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                      autoComplete="username"
+                      className={`w-full pl-10 pr-4 py-3.5 bg-white border-2 rounded-2xl text-gray-800 placeholder-gray-400 
+                        transition-all duration-300 focus:outline-none focus:scale-[1.01] shadow-sm
+                        ${fieldErrors.username 
+                          ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' 
+                          : 'border-teal-200 focus:border-teal-400 focus:ring-2 focus:ring-teal-100'
+                        }`}
+                    />
+                  </div>
+                  {fieldErrors.username && (
+                    <p className="text-red-500 text-xs flex items-center gap-1">
+                      <AlertCircle size={12} />
+                      {fieldErrors.username}
+                    </p>
+                  )}
+                </div>
               )}
               
               {/* Password field with toggle */}
@@ -306,16 +445,41 @@ function Auth({ setUser }: { setUser: any }) {
               </div>
               
               {!isLogin && (
-                <InputField
-                  icon={Lock}
-                  label="Confirm Password"
-                  name="confirmPassword"
-                  type="password"
-                  placeholder="Re-enter your password"
-                  value={formData.confirmPassword}
-                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                  autoComplete="new-password"
-                />
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-semibold text-teal-700">Confirm Password</label>
+                  <div className="relative group">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-teal-400 group-focus-within:text-teal-600 transition-colors">
+                      <Lock size={18} />
+                    </div>
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      name="confirmPassword"
+                      placeholder="Re-enter your password"
+                      value={formData.confirmPassword}
+                      onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                      autoComplete="new-password"
+                      className={`w-full pl-10 pr-12 py-3.5 bg-white border-2 rounded-2xl text-gray-800 placeholder-gray-400 
+                        transition-all duration-300 focus:outline-none focus:scale-[1.01] shadow-sm
+                        ${fieldErrors.confirmPassword 
+                          ? 'border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100' 
+                          : 'border-teal-200 focus:border-teal-400 focus:ring-2 focus:ring-teal-100'
+                        }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-teal-400 hover:text-teal-600 transition-colors p-1"
+                    >
+                      {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                  {fieldErrors.confirmPassword && (
+                    <p className="text-red-500 text-xs flex items-center gap-1">
+                      <AlertCircle size={12} />
+                      {fieldErrors.confirmPassword}
+                    </p>
+                  )}
+                </div>
               )}
               
               <button
@@ -339,6 +503,18 @@ function Auth({ setUser }: { setUser: any }) {
                   </>
                 )}
               </button>
+              
+              {isLogin && (
+                <div className="text-center mt-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="text-teal-600 text-sm hover:text-teal-700 hover:underline transition-all"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
+              )}
             </form>
             
             {/* Footer */}
@@ -373,6 +549,177 @@ function Auth({ setUser }: { setUser: any }) {
           </div>
         </div>
       </div>
+      
+      {/* Forgot Password Modal */}
+      {showForgotPassword && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-teal-100">
+            <div className="flex items-center gap-3 mb-6">
+              <button
+                onClick={resetForgotPassword}
+                className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+              >
+                <ArrowLeft size={20} className="text-gray-600" />
+              </button>
+              <div>
+                <h2 className="text-2xl font-bold text-teal-800">
+                  {otpSent ? 'Reset Password' : 'Forgot Password'}
+                </h2>
+                <p className="text-gray-500 text-sm">
+                  {otpSent ? 'Enter the OTP sent to your email' : 'Enter your email to receive OTP'}
+                </p>
+              </div>
+            </div>
+            
+            {forgotError && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-center gap-2 text-red-700 text-sm mb-4">
+                <AlertCircle size={16} />
+                {forgotError}
+              </div>
+            )}
+            
+            {forgotSuccess && (
+              <div className="bg-green-50 border border-green-200 rounded-xl p-3 flex items-center gap-2 text-green-700 text-sm mb-4">
+                <CheckCircle size={16} />
+                {forgotSuccess}
+              </div>
+            )}
+            
+            {!otpSent ? (
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-semibold text-teal-700">Email Address</label>
+                  <div className="relative group">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-teal-400">
+                      <Mail size={18} />
+                    </div>
+                    <input
+                      type="email"
+                      placeholder="Enter your email address"
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleForgotPassword()}
+                      className="w-full pl-10 pr-4 py-3.5 bg-white border-2 border-teal-200 rounded-2xl text-gray-800 placeholder-gray-400 
+                        focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100"
+                    />
+                  </div>
+                </div>
+                
+                <button
+                  onClick={handleForgotPassword}
+                  disabled={forgotLoading}
+                  className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white py-4 rounded-2xl 
+                    font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] disabled:opacity-50 
+                    transition-all duration-300 flex items-center justify-center gap-2"
+                >
+                  {forgotLoading ? (
+                    <>
+                      <Loader2 className="animate-spin" size={20} />
+                      Sending OTP...
+                    </>
+                  ) : (
+                    <>
+                      <Mail size={20} />
+                      Send OTP
+                    </>
+                  )}
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-semibold text-teal-700">OTP Code</label>
+                  <div className="relative group">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-teal-400">
+                      <KeyRound size={18} />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Enter 6-digit OTP"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      onKeyDown={(e) => e.key === 'Enter' && otp.length === 6 && newPassword && confirmNewPassword && handleResetPassword()}
+                      maxLength={6}
+                      className="w-full pl-10 pr-4 py-3.5 bg-white border-2 border-teal-200 rounded-2xl text-gray-800 placeholder-gray-400 
+                        focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 text-center text-xl tracking-widest"
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-semibold text-teal-700">New Password</label>
+                  <div className="relative group">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-teal-400">
+                      <Lock size={18} />
+                    </div>
+                    <input
+                      type={showNewPassword ? 'text' : 'password'}
+                      placeholder="Enter new password (min 6 chars)"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleResetPassword()}
+                      className="w-full pl-10 pr-12 py-3.5 bg-white border-2 border-teal-200 rounded-2xl text-gray-800 placeholder-gray-400 
+                        focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-teal-400 hover:text-teal-600 transition-colors p-1"
+                    >
+                      {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-semibold text-teal-700">Confirm New Password</label>
+                  <div className="relative group">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-teal-400">
+                      <Lock size={18} />
+                    </div>
+                    <input
+                      type={showNewPassword ? 'text' : 'password'}
+                      placeholder="Re-enter new password"
+                      value={confirmNewPassword}
+                      onChange={(e) => setConfirmNewPassword(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleResetPassword()}
+                      className="w-full pl-10 pr-4 py-3.5 bg-white border-2 border-teal-200 rounded-2xl text-gray-800 placeholder-gray-400 
+                        focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100"
+                    />
+                  </div>
+                </div>
+                
+                <button
+                  onClick={handleResetPassword}
+                  disabled={forgotLoading}
+                  className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white py-4 rounded-2xl 
+                    font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] disabled:opacity-50 
+                    transition-all duration-300 flex items-center justify-center gap-2"
+                >
+                  {forgotLoading ? (
+                    <>
+                      <Loader2 className="animate-spin" size={20} />
+                      Resetting Password...
+                    </>
+                  ) : (
+                    <>
+                      <KeyRound size={20} />
+                      Reset Password
+                    </>
+                  )}
+                </button>
+                
+                <button
+                  onClick={() => setOtpSent(false)}
+                  className="w-full text-teal-600 text-sm hover:underline transition-all"
+                >
+                  Didn't receive OTP? Try again
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

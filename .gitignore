@@ -1,0 +1,21 @@
+# Environment variables (contains secrets)
+.env
+.env.local
+.env.production
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Build outputs
+backend/target/
+frontend/dist/
+frontend/node_modules/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

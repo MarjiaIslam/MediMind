@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Settings, Trash2, Camera, User, Bell, LogOut, ChevronRight, Scale, Heart, Calendar, Search, Plus, X, Volume2 } from 'lucide-react';
+import { Settings, Trash2, Camera, User, Bell, LogOut, ChevronRight, Scale, Heart, Calendar, Search, Plus, X, Volume2, Lock, Eye, EyeOff, AlertCircle, Edit2, CheckCircle } from 'lucide-react';
 import { playRingtone, SoundType } from './utils/audioNotification';
 
 interface JournalEntry {
@@ -40,8 +40,19 @@ export default function Profile({ user, setUser }: { user: any, setUser: any }) 
     const [showSettings, setShowSettings] = useState(false);
     const [showIconPicker, setShowIconPicker] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [deletePassword, setDeletePassword] = useState('');
+    const [showDeletePassword, setShowDeletePassword] = useState(false);
+    const [deleteError, setDeleteError] = useState('');
+    const [deleteLoading, setDeleteLoading] = useState(false);
     const [bmiInfo, setBmiInfo] = useState<BmiInfo | null>(null);
     const [activeTab, setActiveTab] = useState<'profile' | 'journal' | 'settings'>('profile');
+    
+    // Username change states
+    const [showUsernameChange, setShowUsernameChange] = useState(false);
+    const [newUsername, setNewUsername] = useState('');
+    const [usernameError, setUsernameError] = useState('');
+    const [usernameLoading, setUsernameLoading] = useState(false);
+    const [usernameSuccess, setUsernameSuccess] = useState('');
     
     // Journal states
     const [journal, setJournal] = useState<JournalEntry[]>([]);
@@ -169,14 +180,80 @@ export default function Profile({ user, setUser }: { user: any, setUser: any }) 
     };
 
     const handleDeleteAccount = async () => {
+        if (!deletePassword.trim()) {
+            setDeleteError('Please enter your password to confirm');
+            return;
+        }
+        
         try {
-            await axios.delete(`/api/user/${user.id}`);
+            setDeleteLoading(true);
+            setDeleteError('');
+            await axios.delete(`/api/user/${user.id}`, {
+                data: { password: deletePassword }
+            });
             localStorage.removeItem('user');
             setUser(null);
             navigate('/');
-        } catch (err) {
-            console.error('Error deleting account:', err);
+        } catch (err: any) {
+            setDeleteError(err.response?.data?.error || 'Failed to delete account. Please check your password.');
+        } finally {
+            setDeleteLoading(false);
         }
+    };
+    
+    const handleUsernameChange = async () => {
+        if (!newUsername.trim()) {
+            setUsernameError('Please enter a new username');
+            return;
+        }
+        
+        if (newUsername.length < 3) {
+            setUsernameError('Username must be at least 3 characters');
+            return;
+        }
+        
+        if (newUsername.toLowerCase() === user.username.toLowerCase()) {
+            setUsernameError('New username must be different from current');
+            return;
+        }
+        
+        try {
+            setUsernameLoading(true);
+            setUsernameError('');
+            const res = await axios.put('/api/user/change-username', {
+                userId: user.id,
+                newUsername: newUsername.toLowerCase().replace(/[^a-z0-9_]/g, '')
+            });
+            setUser(res.data);
+            localStorage.setItem('user', JSON.stringify(res.data));
+            setFormData(res.data);
+            setUsernameSuccess('Username changed successfully!');
+            setTimeout(() => {
+                setShowUsernameChange(false);
+                setNewUsername('');
+                setUsernameSuccess('');
+            }, 2000);
+        } catch (err: any) {
+            setUsernameError(err.response?.data?.error || 'Failed to change username');
+        } finally {
+            setUsernameLoading(false);
+        }
+    };
+    
+    const canChangeUsername = () => {
+        if (!user.lastUsernameChange) return true;
+        const lastChange = new Date(user.lastUsernameChange);
+        const now = new Date();
+        const daysDiff = Math.floor((now.getTime() - lastChange.getTime()) / (1000 * 60 * 60 * 24));
+        return daysDiff >= 40;
+    };
+    
+    const daysUntilUsernameChange = () => {
+        if (!user.lastUsernameChange) return 0;
+        const lastChange = new Date(user.lastUsernameChange);
+        const now = new Date();
+        const daysDiff = Math.floor((now.getTime() - lastChange.getTime()) / (1000 * 60 * 60 * 24));
+        return Math.max(0, 40 - daysDiff);
     };
 
     const handleProfilePictureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -691,13 +768,33 @@ export default function Profile({ user, setUser }: { user: any, setUser: any }) 
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-purple-700 mb-2">Username</label>
-                                <input 
-                                    type="text"
-                                    value={formData.username || ''}
-                                    disabled
-                                    className="w-full p-4 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-500 cursor-not-allowed"
-                                />
-                                <p className="text-xs text-gray-400 mt-2">🔒 Username cannot be changed</p>
+                                <div className="flex gap-2">
+                                    <input 
+                                        type="text"
+                                        value={formData.username || ''}
+                                        disabled
+                                        className="flex-1 p-4 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-500 cursor-not-allowed"
+                                    />
+                                    {canChangeUsername() ? (
+                                        <button
+                                            onClick={() => {
+                                                setShowUsernameChange(true);
+                                                setNewUsername('');
+                                                setUsernameError('');
+                                                setUsernameSuccess('');
+                                            }}
+                                            className="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl hover:opacity-90 transition flex items-center gap-2 font-medium"
+                                        >
+                                            <Edit2 size={18} />
+                                            Change
+                                        </button>
+                                    ) : null}
+                                </div>
+                                {canChangeUsername() ? (
+                                    <p className="text-xs text-green-500 mt-2">✅ You can change your username now</p>
+                                ) : (
+                                    <p className="text-xs text-gray-400 mt-2">🔒 You can change your username in {daysUntilUsernameChange()} days</p>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -808,18 +905,140 @@ export default function Profile({ user, setUser }: { user: any, setUser: any }) 
                         <p className="text-gray-600 mb-6 text-center leading-relaxed">
                             This action <span className="font-bold text-red-500">cannot be undone</span>. All your data including medicines, meals, and journal entries will be permanently deleted.
                         </p>
+                        
+                        {deleteError && (
+                            <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-center gap-2 text-red-700 text-sm mb-4">
+                                <AlertCircle size={16} />
+                                {deleteError}
+                            </div>
+                        )}
+                        
+                        <div className="mb-6">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Enter your password to confirm</label>
+                            <div className="relative">
+                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                    <Lock size={18} />
+                                </div>
+                                <input
+                                    type={showDeletePassword ? 'text' : 'password'}
+                                    placeholder="Enter your password"
+                                    value={deletePassword}
+                                    onChange={(e) => setDeletePassword(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleDeleteAccount()}
+                                    className="w-full pl-10 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:border-red-400 focus:ring-2 focus:ring-red-100 focus:outline-none"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowDeletePassword(!showDeletePassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1"
+                                >
+                                    {showDeletePassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                            </div>
+                        </div>
+                        
                         <div className="flex gap-4">
                             <button 
-                                onClick={() => setShowDeleteConfirm(false)}
+                                onClick={() => {
+                                    setShowDeleteConfirm(false);
+                                    setDeletePassword('');
+                                    setDeleteError('');
+                                }}
                                 className="flex-1 py-3 border-2 border-gray-200 rounded-xl hover:bg-gray-50 font-medium transition-all"
                             >
                                 Cancel
                             </button>
                             <button 
                                 onClick={handleDeleteAccount}
-                                className="flex-1 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:opacity-90 font-medium transition-all shadow-lg"
+                                disabled={deleteLoading}
+                                className="flex-1 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:opacity-90 font-medium transition-all shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
                             >
-                                🗑️ Delete
+                                {deleteLoading ? (
+                                    <>
+                                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                        Deleting...
+                                    </>
+                                ) : (
+                                    '🗑️ Delete'
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
+            {/* Username Change Modal */}
+            {showUsernameChange && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-purple-100">
+                        <div className="text-center mb-6">
+                            <div className="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-4">
+                                <Edit2 className="text-purple-500" size={32} />
+                            </div>
+                            <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Change Username</h2>
+                            <p className="text-gray-500 text-sm mt-2">You can change your username once every 40 days</p>
+                        </div>
+                        
+                        {usernameError && (
+                            <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-center gap-2 text-red-700 text-sm mb-4">
+                                <AlertCircle size={16} />
+                                {usernameError}
+                            </div>
+                        )}
+                        
+                        {usernameSuccess && (
+                            <div className="bg-green-50 border border-green-200 rounded-xl p-3 flex items-center gap-2 text-green-700 text-sm mb-4">
+                                <CheckCircle size={16} />
+                                {usernameSuccess}
+                            </div>
+                        )}
+                        
+                        <div className="mb-6">
+                            <label className="block text-sm font-medium text-purple-700 mb-2">Current Username</label>
+                            <input
+                                type="text"
+                                value={user.username}
+                                disabled
+                                className="w-full p-3 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-500 mb-4"
+                            />
+                            
+                            <label className="block text-sm font-medium text-purple-700 mb-2">New Username</label>
+                            <input
+                                type="text"
+                                placeholder="Enter new username"
+                                value={newUsername}
+                                onChange={(e) => setNewUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                                onKeyDown={(e) => e.key === 'Enter' && handleUsernameChange()}
+                                className="w-full p-3 border-2 border-purple-200 rounded-xl focus:border-purple-400 focus:ring-2 focus:ring-purple-100 focus:outline-none"
+                            />
+                            <p className="text-xs text-gray-400 mt-2">Only lowercase letters, numbers, and underscores allowed</p>
+                        </div>
+                        
+                        <div className="flex gap-4">
+                            <button 
+                                onClick={() => {
+                                    setShowUsernameChange(false);
+                                    setNewUsername('');
+                                    setUsernameError('');
+                                    setUsernameSuccess('');
+                                }}
+                                className="flex-1 py-3 border-2 border-gray-200 rounded-xl hover:bg-gray-50 font-medium transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                onClick={handleUsernameChange}
+                                disabled={usernameLoading || !!usernameSuccess}
+                                className="flex-1 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl hover:opacity-90 font-medium transition-all shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
+                            >
+                                {usernameLoading ? (
+                                    <>
+                                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                        Updating...
+                                    </>
+                                ) : (
+                                    '✨ Change Username'
+                                )}
                             </button>
                         </div>
                     </div>

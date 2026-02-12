@@ -13,6 +13,8 @@
 /workspaces/MediMind/backend/src/main/java/com/medimind/api/repository/JournalRepository.java
 /workspaces/MediMind/backend/src/main/java/com/medimind/api/controller/AuthController.java
 /workspaces/MediMind/backend/src/main/java/com/medimind/api/controller/UserController.java
+/workspaces/MediMind/backend/src/main/java/com/medimind/api/controller/HealthController.java
 /workspaces/MediMind/backend/src/main/java/com/medimind/api/model/JournalEntry.java
 /workspaces/MediMind/backend/src/main/java/com/medimind/api/service/MealSuggestionService.java
 /workspaces/MediMind/backend/src/main/java/com/medimind/api/controller/MealController.java
+/workspaces/MediMind/backend/src/main/java/com/medimind/api/config/WebConfig.java

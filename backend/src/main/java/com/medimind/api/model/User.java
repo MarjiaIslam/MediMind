@@ -52,6 +52,13 @@ public class User {
     private String verificationCode;
     private Long verificationCodeExpiry; // Unix timestamp
     
+    // Password Reset
+    private String resetOtp;
+    private Long resetOtpExpiry; // Unix timestamp
+    
+    // Username Change Tracking
+    private String lastUsernameChange; // ISO date string
+    
     // Daily Stats
     private int dailyCalorieGoal = 2000;
     private int waterIntake = 0; 

@@ -53,6 +53,7 @@ public class UserController {
                     response.put("morningLogs", user.getMorningLogs());
                     response.put("eveningLogs", user.getEveningLogs());
                     response.put("journalEntries", user.getJournalEntries());
+                    response.put("lastUsernameChange", user.getLastUsernameChange());
                     return ResponseEntity.ok(response);
                 })
                 .orElse(ResponseEntity.notFound().build());
@@ -142,6 +143,7 @@ public class UserController {
                     response.put("morningLogs", saved.getMorningLogs());
                     response.put("eveningLogs", saved.getEveningLogs());
                     response.put("journalEntries", saved.getJournalEntries());
+                    response.put("lastUsernameChange", saved.getLastUsernameChange());
                     
                     return ResponseEntity.ok(response);
                 })
@@ -149,12 +151,121 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
-        if (userRepository.existsById(id)) {
-            userRepository.deleteById(id);
-            return ResponseEntity.ok(Map.of("message", "Account deleted successfully"));
+    public ResponseEntity<?> deleteUser(@PathVariable Long id, @RequestBody(required = false) Map<String, String> data) {
+        var userOpt = userRepository.findById(id);
+        
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.notFound().build();
+        
+        User user = userOpt.get();
+        
+        // Require password confirmation
+        String password = data != null ? data.get("password") : null;
+        
+        if (password == null || password.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Password is required to delete account"));
+        }
+        
+        if (!user.getPassword().equals(password)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Incorrect password"));
+        }
+        
+        userRepository.deleteById(id);
+        return ResponseEntity.ok(Map.of("message", "Account deleted successfully"));
+    }
+    
+    @RequestMapping(value = "/change-username", method = {RequestMethod.PUT, RequestMethod.POST})
+    public ResponseEntity<?> changeUsername(@RequestBody Map<String, Object> data) {
+        Long userId = data.get("userId") != null ? Long.valueOf(data.get("userId").toString()) : null;
+        String newUsername = data.get("newUsername") != null ? data.get("newUsername").toString().toLowerCase() : null;
+        
+        if (userId == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "User ID is required"));
+        }
+        
+        if (newUsername == null || newUsername.trim().length() < 3) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Username must be at least 3 characters"));
+        }
+        
+        var userOpt = userRepository.findById(userId);
+        
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        User user = userOpt.get();
+        
+        // Check if 40 days have passed since last username change
+        if (user.getLastUsernameChange() != null) {
+            try {
+                java.time.LocalDate lastChange = java.time.LocalDate.parse(user.getLastUsernameChange());
+                java.time.LocalDate now = java.time.LocalDate.now();
+                long daysDiff = java.time.temporal.ChronoUnit.DAYS.between(lastChange, now);
+                
+                if (daysDiff < 40) {
+                    return ResponseEntity.badRequest().body(Map.of(
+                        "error", "You can only change your username once every 40 days. " + (40 - daysDiff) + " days remaining."
+                    ));
+                }
+            } catch (Exception e) {
+                // If date parsing fails, allow the change
+            }
+        }
+        
+        // Check if new username is same as current
+        if (newUsername.equals(user.getUsername())) {
+            return ResponseEntity.badRequest().body(Map.of("error", "New username must be different from current"));
+        }
+        
+        // Check if username is already taken
+        var existingUser = userRepository.findByUsername(newUsername);
+        if (existingUser.isPresent() && !existingUser.get().getId().equals(userId)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Username is already taken"));
+        }
+        
+        // Update username
+        user.setUsername(newUsername);
+        user.setLastUsernameChange(java.time.LocalDate.now().toString());
+        User saved = userRepository.save(user);
+        
+        // Return updated user data
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", saved.getId());
+        response.put("fullName", saved.getFullName());
+        response.put("username", saved.getUsername());
+        response.put("email", saved.getEmail());
+        response.put("height", saved.getHeight());
+        response.put("weight", saved.getWeight());
+        response.put("age", saved.getAge());
+        response.put("gender", saved.getGender());
+        response.put("allergies", saved.getAllergies());
+        response.put("conditions", saved.getConditions());
+        response.put("targetWeight", saved.getTargetWeight());
+        response.put("profilePicture", saved.getProfilePicture());
+        response.put("profileIcon", saved.getProfileIcon());
+        response.put("notificationSound", saved.getNotificationSound());
+        response.put("notificationsEnabled", saved.isNotificationsEnabled());
+        response.put("dailyCalorieGoal", saved.getDailyCalorieGoal());
+        response.put("waterIntake", saved.getWaterIntake());
+        response.put("points", saved.getPoints());
+        response.put("level", saved.getLevel());
+        response.put("mood", saved.getMood());
+        response.put("bmi", saved.getBmi());
+        response.put("bmiCategory", saved.getBmiCategory());
+        response.put("recommendedCalories", saved.getRecommendedCalories());
+        response.put("streak", saved.getStreak());
+        response.put("lastClaimDate", saved.getLastClaimDate());
+        response.put("totalWaterLogs", saved.getTotalWaterLogs());
+        response.put("totalMealsLogged", saved.getTotalMealsLogged());
+        response.put("perfectMedicineDays", saved.getPerfectMedicineDays());
+        response.put("perfectDays", saved.getPerfectDays());
+        response.put("morningLogs", saved.getMorningLogs());
+        response.put("eveningLogs", saved.getEveningLogs());
+        response.put("journalEntries", saved.getJournalEntries());
+        response.put("lastUsernameChange", saved.getLastUsernameChange());
+        
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/bmi/{id}")
