@@ -327,13 +327,13 @@ export default function MyMedicine({ user, setUser }: { user: any, setUser: (u: 
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-sage-50 via-lavender-50 to-sage-100 p-6">
+        <div className="min-h-screen bg-sage-50 dark:bg-gray-900 p-6">
             <button onClick={() => navigate('/dashboard')} className="mb-4 text-sage-600 font-bold hover:text-sage-800 flex items-center gap-2 bg-white/50 px-4 py-2 rounded-xl hover:bg-white/80 transition">
                 <Activity size={18} /> ← Back to Dashboard
             </button>
             
             {/* Header */}
-            <div className="bg-gradient-to-r from-sage-400 via-lavender-400 to-sage-400 rounded-2xl p-6 mb-6 shadow-lg">
+            <div className="bg-sage-500 dark:bg-sage-700 rounded-2xl p-6 mb-6 shadow-lg">
                 <div className="flex items-center gap-4">
                     <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center">
                         <span className="text-4xl">💊</span>
@@ -347,13 +347,13 @@ export default function MyMedicine({ user, setUser }: { user: any, setUser: (u: 
 
             {/* Summary Card */}
             {summary && (
-                <div className="bg-gradient-to-r from-white to-lavender-50 rounded-xl shadow-lg p-6 mb-6 border border-lavender-100">
-                    <h2 className="text-lg font-semibold text-sage-600 mb-4">Today's Progress</h2>
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6 border border-lavender-100 dark:border-gray-700">
+                    <h2 className="text-lg font-semibold text-sage-600 dark:text-sage-400 mb-4">Today's Progress</h2>
                     <div className="flex items-center gap-6">
                         <div className="flex-1">
-                            <div className="h-4 bg-gray-200 rounded-full overflow-hidden">
+                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                                 <div 
-                                    className="h-full bg-gradient-to-r from-sage-400 to-lavender-400 transition-all"
+                                    className="h-full bg-sage-500 dark:bg-sage-400 transition-all"
                                     style={{ width: `${summary.adherencePercentage}%` }}
                                 />
                             </div>
@@ -366,17 +366,17 @@ export default function MyMedicine({ user, setUser }: { user: any, setUser: (u: 
                         </div>
                     </div>
                     <div className="grid grid-cols-3 gap-4 mt-4 text-center">
-                        <div className="bg-gradient-to-br from-sage-100 to-sage-200 p-3 rounded-lg border border-sage-200">
-                            <p className="text-2xl font-bold text-sage-700">{summary.totalMedicines}</p>
-                            <p className="text-xs text-sage-600 font-medium">Active Medicines</p>
+                        <div className="bg-sage-100 dark:bg-sage-900 p-3 rounded-lg border border-sage-200 dark:border-sage-700">
+                            <p className="text-2xl font-bold text-sage-700 dark:text-sage-300">{summary.totalMedicines}</p>
+                            <p className="text-xs text-sage-600 dark:text-sage-400 font-medium">Active Medicines</p>
                         </div>
-                        <div className="bg-gradient-to-br from-green-100 to-emerald-200 p-3 rounded-lg border border-green-200">
-                            <p className="text-2xl font-bold text-green-700">{summary.takenDoses}</p>
-                            <p className="text-xs text-green-600 font-medium">Taken</p>
+                        <div className="bg-green-100 dark:bg-green-900 p-3 rounded-lg border border-green-200 dark:border-green-700">
+                            <p className="text-2xl font-bold text-green-700 dark:text-green-300">{summary.takenDoses}</p>
+                            <p className="text-xs text-green-600 dark:text-green-400 font-medium">Taken</p>
                         </div>
-                        <div className="bg-gradient-to-br from-orange-100 to-amber-200 p-3 rounded-lg border border-orange-200">
-                            <p className="text-2xl font-bold text-orange-700">{summary.remainingDoses}</p>
-                            <p className="text-xs text-orange-600 font-medium">Remaining</p>
+                        <div className="bg-orange-100 dark:bg-orange-900 p-3 rounded-lg border border-orange-200 dark:border-orange-700">
+                            <p className="text-2xl font-bold text-orange-700 dark:text-orange-300">{summary.remainingDoses}</p>
+                            <p className="text-xs text-orange-600 dark:text-orange-400 font-medium">Remaining</p>
                         </div>
                     </div>
                 </div>
@@ -384,7 +384,7 @@ export default function MyMedicine({ user, setUser }: { user: any, setUser: (u: 
 
             {/* Upcoming Reminders */}
             {reminders.length > 0 && (
-                <div className="bg-gradient-to-r from-lavender-100 to-sage-100 rounded-xl p-4 mb-6">
+                <div className="bg-lavender-100 dark:bg-lavender-900 rounded-xl p-4 mb-6">
                     <div className="flex items-center gap-2 mb-3">
                         <Bell className="text-lavender-600" size={20} />
                         <h3 className="font-semibold text-lavender-700">Upcoming Reminders</h3>
@@ -406,19 +406,19 @@ export default function MyMedicine({ user, setUser }: { user: any, setUser: (u: 
             <div className="flex gap-2 mb-4">
                 <button 
                     onClick={() => setTab('today')}
-                    className={`px-5 py-2.5 rounded-xl font-medium transition shadow-md ${tab === 'today' ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white' : 'bg-white text-sage-600 hover:bg-sage-100 border border-sage-200'}`}
+                    className={`px-5 py-2.5 rounded-xl font-medium transition shadow-md ${tab === 'today' ? 'bg-green-500 dark:bg-green-600 text-white' : 'bg-white dark:bg-gray-800 text-sage-600 dark:text-sage-300 hover:bg-sage-100 dark:hover:bg-gray-700 border border-sage-200 dark:border-gray-600'}`}
                 >
                     📅 Today's Schedule
                 </button>
                 <button 
                     onClick={() => setTab('all')}
-                    className={`px-5 py-2.5 rounded-xl font-medium transition shadow-md ${tab === 'all' ? 'bg-gradient-to-r from-lavender-400 to-purple-500 text-white' : 'bg-white text-sage-600 hover:bg-sage-100 border border-sage-200'}`}
+                    className={`px-5 py-2.5 rounded-xl font-medium transition shadow-md ${tab === 'all' ? 'bg-lavender-500 dark:bg-lavender-600 text-white' : 'bg-white dark:bg-gray-800 text-sage-600 dark:text-sage-300 hover:bg-sage-100 dark:hover:bg-gray-700 border border-sage-200 dark:border-gray-600'}`}
                 >
                     💊 All Medicines
                 </button>
                 <button 
                     onClick={() => setShowAddForm(true)}
-                    className="ml-auto bg-gradient-to-r from-orange-400 to-amber-500 text-white px-5 py-2.5 rounded-xl font-medium hover:from-orange-500 hover:to-amber-600 flex items-center gap-2 shadow-lg hover:shadow-xl transition-all"
+                    className="ml-auto bg-orange-500 dark:bg-orange-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-orange-600 dark:hover:bg-orange-700 flex items-center gap-2 shadow-lg hover:shadow-xl transition-all"
                 >
                     <Plus size={18} /> Add Medicine
                 </button>
@@ -427,13 +427,13 @@ export default function MyMedicine({ user, setUser }: { user: any, setUser: (u: 
             {/* Add Medicine Modal */}
             {showAddForm && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-gradient-to-br from-white via-sage-50 to-lavender-50 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-lavender-100">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-lavender-100 dark:border-gray-700">
                         <div className="flex justify-between items-center mb-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sage-400 to-lavender-400 flex items-center justify-center">
+                                <div className="w-10 h-10 rounded-full bg-sage-500 dark:bg-sage-600 flex items-center justify-center">
                                     <span className="text-xl">💊</span>
                                 </div>
-                                <h2 className="text-xl font-bold bg-gradient-to-r from-sage-600 to-lavender-600 bg-clip-text text-transparent">Add New Medicine</h2>
+                                <h2 className="text-xl font-bold text-sage-600 dark:text-sage-400">Add New Medicine</h2>
                             </div>
                             <button onClick={() => { setShowAddForm(false); setValidationErrors(''); }} className="text-gray-400 hover:text-gray-600 bg-white p-2 rounded-full hover:bg-gray-100 transition">
                                 <X size={20} />
@@ -509,7 +509,7 @@ export default function MyMedicine({ user, setUser }: { user: any, setUser: (u: 
                             </div>
                             <button 
                                 onClick={addMedicine} 
-                                className="w-full bg-gradient-to-r from-sage-400 via-lavender-400 to-sage-400 text-white py-3 rounded-xl font-semibold hover:from-sage-500 hover:via-lavender-500 hover:to-sage-500 shadow-lg hover:shadow-xl transition-all"
+                                className="w-full bg-sage-500 dark:bg-sage-600 text-white py-3 rounded-xl font-semibold hover:bg-sage-600 dark:hover:bg-sage-700 shadow-lg hover:shadow-xl transition-all"
                             >
                                 ✨ Add Medicine
                             </button>
@@ -521,13 +521,13 @@ export default function MyMedicine({ user, setUser }: { user: any, setUser: (u: 
             {/* Edit Medicine Modal */}
             {editingMed && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-gradient-to-br from-white via-lavender-50 to-sage-50 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-sage-100">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-sage-100 dark:border-gray-700">
                         <div className="flex justify-between items-center mb-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-lavender-400 to-sage-400 flex items-center justify-center">
+                                <div className="w-10 h-10 rounded-full bg-lavender-500 dark:bg-lavender-600 flex items-center justify-center">
                                     <Edit2 size={18} className="text-white" />
                                 </div>
-                                <h2 className="text-xl font-bold bg-gradient-to-r from-lavender-600 to-sage-600 bg-clip-text text-transparent">Edit Medicine</h2>
+                                <h2 className="text-xl font-bold text-lavender-600 dark:text-lavender-400">Edit Medicine</h2>
                             </div>
                             <button onClick={() => setEditingMed(null)} className="text-gray-400 hover:text-gray-600 bg-white p-2 rounded-full hover:bg-gray-100 transition">
                                 <X size={20} />
@@ -581,7 +581,7 @@ export default function MyMedicine({ user, setUser }: { user: any, setUser: (u: 
                             </div>
                             <button 
                                 onClick={updateMedicine} 
-                                className="w-full bg-gradient-to-r from-lavender-400 via-sage-400 to-lavender-400 text-white py-3 rounded-xl font-semibold hover:from-lavender-500 hover:via-sage-500 hover:to-lavender-500 shadow-lg hover:shadow-xl transition-all"
+                                className="w-full bg-lavender-500 dark:bg-lavender-600 text-white py-3 rounded-xl font-semibold hover:bg-lavender-600 dark:hover:bg-lavender-700 shadow-lg hover:shadow-xl transition-all"
                             >
                                 ✨ Save Changes
                             </button>
@@ -601,8 +601,8 @@ export default function MyMedicine({ user, setUser }: { user: any, setUser: (u: 
                                     key={`${med.medicineId}-${med.slot}-${idx}`} 
                                     className={`flex justify-between items-center p-4 rounded-xl border-2 transition ${
                                         med.taken 
-                                            ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200' 
-                                            : 'bg-white border-lavender-100 shadow-md hover:shadow-lg'
+                                            ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-700' 
+                                            : 'bg-white dark:bg-gray-800 border-lavender-100 dark:border-gray-700 shadow-md hover:shadow-lg'
                                     }`}
                                 >
                                     <div className="flex items-center gap-4">
@@ -694,7 +694,7 @@ export default function MyMedicine({ user, setUser }: { user: any, setUser: (u: 
                                 <div className="mt-3 flex flex-wrap gap-2">
                                     {med.time1 && (
                                         <span className={`px-3 py-1.5 rounded-full text-sm flex items-center gap-1 font-medium ${
-                                            med.taken1 ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border border-green-200' : 'bg-gradient-to-r from-sage-100 to-sage-200 text-sage-700 border border-sage-200'
+                                            med.taken1 ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700' : 'bg-sage-100 dark:bg-sage-900/50 text-sage-700 dark:text-sage-300 border border-sage-200 dark:border-sage-700'
                                         }`}>
                                             <Clock size={14} /> {formatTimeForDisplay(med.time1)}
                                             {med.taken1 && <CheckCircle size={14} className="text-green-500" />}
@@ -702,7 +702,7 @@ export default function MyMedicine({ user, setUser }: { user: any, setUser: (u: 
                                     )}
                                     {med.time2 && (
                                         <span className={`px-3 py-1.5 rounded-full text-sm flex items-center gap-1 font-medium ${
-                                            med.taken2 ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border border-green-200' : 'bg-gradient-to-r from-lavender-100 to-lavender-200 text-lavender-700 border border-lavender-200'
+                                            med.taken2 ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700' : 'bg-lavender-100 dark:bg-lavender-900/50 text-lavender-700 dark:text-lavender-300 border border-lavender-200 dark:border-lavender-700'
                                         }`}>
                                             <Clock size={14} /> {formatTimeForDisplay(med.time2)}
                                             {med.taken2 && <CheckCircle size={14} className="text-green-500" />}
@@ -710,7 +710,7 @@ export default function MyMedicine({ user, setUser }: { user: any, setUser: (u: 
                                     )}
                                     {med.time3 && (
                                         <span className={`px-3 py-1.5 rounded-full text-sm flex items-center gap-1 font-medium ${
-                                            med.taken3 ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border border-green-200' : 'bg-gradient-to-r from-amber-100 to-orange-100 text-amber-700 border border-amber-200'
+                                            med.taken3 ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700' : 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700'
                                         }`}>
                                             <Clock size={14} /> {formatTimeForDisplay(med.time3)}
                                             {med.taken3 && <CheckCircle size={14} className="text-green-500" />}

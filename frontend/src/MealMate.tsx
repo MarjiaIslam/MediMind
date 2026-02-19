@@ -195,6 +195,23 @@ export default function MealMate({ user, setUser }: { user: any, setUser: any })
         try {
             setLoading(true);
             await axios.delete(`/api/meals/${mealId}`);
+            
+            // Update meal count for achievements
+            const currentUser = userRef.current;
+            const newMealCount = Math.max(0, (currentUser.totalMealsLogged || 0) - 1);
+            
+            const updateData = {
+                id: currentUser.id,
+                totalMealsLogged: newMealCount
+            };
+            
+            const res = await axios.put('/api/user/update', updateData);
+            // Explicitly set totalMealsLogged to ensure it's updated correctly
+            const updatedUser = { ...currentUser, ...res.data, totalMealsLogged: newMealCount };
+            setUser(updatedUser);
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+            userRef.current = updatedUser;
+            
             await fetchMealHistory();
             alert('Meal deleted successfully!');
         } catch (err) {

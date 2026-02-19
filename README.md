@@ -10,7 +10,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.2-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 
-**A comprehensive health management platform combining medicine tracking, nutrition planning, mood journaling, and gamified wellness.**
+**A comprehensive health management platform combining medicine tracking, nutrition planning, mood journaling, hydration tracking, and gamified wellness with achievements.**
 
 [Features](#-key-features) • [Quick Start](#-quick-start) • [API Reference](#-api-reference) • [Tech Stack](#-technology-stack)
 
@@ -21,11 +21,12 @@
 ## 📖 Overview
 
 **MediMind** is an intelligent health companion designed to help users:
-- 💊 Track daily medicines with smart reminders
+- 💊 Track daily medicines with smart reminders and browser notifications
 - 🍎 Plan nutritious meals with allergy-aware suggestions
 - 📔 Journal moods and mental well-being
-- 💧 Monitor hydration levels
-- 🎮 Stay motivated with gamification and badges
+- 💧 Monitor hydration levels with daily goals
+- 🎮 Stay motivated with daily streaks, achievements, and badge progression
+- 📊 View personalized health dashboards with BMI and calorie tracking
 
 Built with **Java Spring Boot** backend and **React TypeScript** frontend, MediMind provides a seamless, responsive experience across devices.
 
@@ -125,7 +126,9 @@ This project demonstrates key software engineering concepts:
 - Secure registration & login with **email verification**
 - **Email domain validation** - Only real email domains accepted
 - **6-digit verification code** sent to email
+- **Password reset** via email with secure tokens
 - Custom profile picture or avatar icons
+- **Guided profile setup** for new users
 - Deep health profile: age, weight, height, allergies, chronic conditions
 - Automatic BMI calculation with health categories
 - Personalized daily calorie recommendations
@@ -148,24 +151,25 @@ This project demonstrates key software engineering concepts:
 ### 💧 Hydration Tracker
 - Daily water intake monitoring
 - Visual progress indicators
-- Customizable daily goals
+- 8-glass daily goal
 
 ### 📔 Mood Journal
 - Daily diary with mood tracking
-- Multiple mood options: Happy, Stressed, Calm, Tired, Sad, Excited, Anxious, Grateful
+- Multiple mood options: Happy, Excited, Calm, Grateful, Tired, Anxious, Sad, Angry
 - Search entries by keyword or date
-- Motivational quotes based on mood
+- Full entry editing and deletion
 
 ### 🎮 Gamification & Rewards
 - **Points system** - Earn points for healthy habits
-- **Level progression** - Level up as you grow
-- **Badges** - Bronze, Silver, Gold achievements
+- **Daily streak** - Claim daily rewards to build streaks
+- **Level progression** - Bronze, Silver, Gold, Platinum, Diamond
+- **12 Achievements** - Track progress across various health goals
 
 ### 📊 Health Dashboard
 - BMI display with health category
 - Daily calorie recommendations
 - Medicine progress at a glance
-- Ideal weight range calculator
+- Notes/Journal entry counter
 
 ---
 
@@ -205,6 +209,7 @@ MediMind/
 │   │   ├── Journal.tsx        # Mood diary
 │   │   ├── Badges.tsx         # Gamification
 │   │   ├── Profile.tsx        # User settings
+│   │   ├── ProfileSetup.tsx   # Onboarding
 │   │   └── index.css          # Tailwind styles
 │   ├── package.json           # npm dependencies
 │   ├── vite.config.ts         # Vite configuration
@@ -223,35 +228,41 @@ MediMind/
 |--------|----------|-------------|
 | `POST` | `/api/auth/register` | Register new user |
 | `POST` | `/api/auth/login` | Authenticate user |
+| `POST` | `/api/auth/forgot-password` | Request password reset |
+| `POST` | `/api/auth/reset-password` | Reset password |
 
 ### User Profile
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `GET` | `/api/user/{id}` | Get user profile |
-| `PUT` | `/api/user/{id}` | Update user profile |
+| `PUT` | `/api/user/update` | Update user profile |
 | `DELETE` | `/api/user/{id}` | Delete account |
+| `GET` | `/api/user/bmi/{id}` | Get BMI info |
 
 ### Medicines
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/api/medicine/user/{userId}` | Get all medicines |
+| `GET` | `/api/medicine/{userId}` | Get all medicines |
+| `GET` | `/api/medicine/today/{userId}` | Get today's schedule |
 | `POST` | `/api/medicine/add` | Add new medicine |
 | `PUT` | `/api/medicine/{id}` | Update medicine |
 | `DELETE` | `/api/medicine/{id}` | Delete medicine |
-| `PUT` | `/api/medicine/{id}/take` | Mark dose as taken |
+| `PUT` | `/api/medicine/toggle/{id}/{slot}` | Mark dose as taken |
 
 ### Meals
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/api/meals/suggest` | Get meal suggestions |
+| `GET` | `/api/meals/suggestions/recommended` | Get meal suggestions |
 | `POST` | `/api/meals/log` | Log a meal |
-| `GET` | `/api/meals/user/{userId}` | Get meal history |
+| `GET` | `/api/meals/history/{userId}` | Get meal history |
+| `DELETE` | `/api/meals/{mealId}` | Delete a meal |
 
 ### Journal
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/api/journal/user/{userId}` | Get all entries |
+| `GET` | `/api/journal/{userId}` | Get all entries |
 | `POST` | `/api/journal/add` | Create entry |
+| `PUT` | `/api/journal/{id}` | Update entry |
 | `DELETE` | `/api/journal/{id}` | Delete entry |
 
 ---

@@ -153,8 +153,22 @@ export default function Journal({ user, setUser }: { user: any, setUser: (u: any
             // Show delete success message
             setDeleteSuccess(true);
             setTimeout(() => setDeleteSuccess(false), 3000);
-            // Note: We don't decrement journalEntries for achievements - 
-            // achievements track lifetime activity, not current count
+            
+            // Update user's journal entry count
+            const currentUser = userRef.current;
+            const newJournalCount = Math.max(0, (currentUser.journalEntries || 0) - 1);
+            
+            const updateData = { 
+                id: currentUser.id,
+                journalEntries: newJournalCount 
+            };
+            
+            const userRes = await axios.put('/api/user/update', updateData);
+            // Explicitly set journalEntries to ensure it's updated correctly
+            const updatedUser = { ...currentUser, ...userRes.data, journalEntries: newJournalCount };
+            setUser(updatedUser);
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+            userRef.current = updatedUser;
         } catch (err) {
             console.error('Failed to delete entry:', err);
             alert('Failed to delete the journal entry. Please try again.');

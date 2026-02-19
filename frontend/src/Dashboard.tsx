@@ -4,7 +4,7 @@ import {
     Flame, LogOut, AlertTriangle, BookOpen, FileText,
     Menu, Home, Settings, ChevronRight, Clock
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { 
     playUrgentAlert, 
@@ -97,6 +97,7 @@ function CircularProgress({
 
 export default function Dashboard({ user, setUser, logout }: { user: any, setUser: (u: any) => void, logout: () => void }) {
     const navigate = useNavigate();
+    const location = useLocation();
     const [medicineSummary, setMedicineSummary] = useState<MedicineSummary | null>(null);
     const [bmiInfo, setBmiInfo] = useState<BmiInfo | null>(null);
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -106,6 +107,16 @@ export default function Dashboard({ user, setUser, logout }: { user: any, setUse
     useEffect(() => {
         userRef.current = user;
     }, [user]);
+
+    // Sync user data from localStorage when component mounts or navigates back
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            const parsedUser = JSON.parse(storedUser);
+            // Always update from localStorage to ensure we have the latest data
+            setUser(parsedUser);
+        }
+    }, [location.pathname]);
     const [showCaloriesModal, setShowCaloriesModal] = useState(false);
     const [calorieInfo, setCalorieInfo] = useState<CalorieInfo | null>(null);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Award, Star, Zap, Heart, Flame, Target, Gift, CheckCircle, Lock, TrendingUp, Calendar, Droplets, Pill, Utensils } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 
 interface Achievement {
@@ -24,6 +24,7 @@ interface DailyStreak {
 
 export default function Badges({ user, setUser }: { user: any, setUser: any }) {
     const navigate = useNavigate();
+    const location = useLocation();
     const [points, setPoints] = useState(user.points || 0);
     const [level, setLevel] = useState(user.level || 'Bronze');
     const [showClaimAnimation, setShowClaimAnimation] = useState(false);
@@ -75,6 +76,27 @@ export default function Badges({ user, setUser }: { user: any, setUser: any }) {
         if (user.profilePicture || user.profileIcon) completed++;
         return completed;
     }
+
+    // Sync user data from localStorage when component mounts or navigates
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            const parsedUser = JSON.parse(storedUser);
+            // Always update from localStorage to ensure we have the latest data
+            setUser(parsedUser);
+        }
+    }, [location.pathname]);
+
+    useEffect(() => {
+        setPoints(user.points || 0);
+        setLevel(user.level || 'Bronze');
+        // Also update daily streak state when user changes
+        setDailyStreak(prev => ({
+            ...prev,
+            currentStreak: user.streak || 0,
+            lastClaimDate: user.lastClaimDate || null
+        }));
+    }, [user.points, user.level, user.streak, user.lastClaimDate]);
 
     useEffect(() => {
         checkDailyStreak();
