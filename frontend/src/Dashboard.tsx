@@ -1,5 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { Droplets, Activity, Trophy, Coffee, Utensils, Pill, User, Scale, Heart, X, Target, TrendingDown, TrendingUp, Flame, LogOut, AlertTriangle, BookOpen } from 'lucide-react';
+import { 
+    Droplets, Activity, Trophy, Coffee, Utensils, Pill, User, Scale, Heart, X, 
+    Target, TrendingDown, TrendingUp, Flame, LogOut, AlertTriangle, BookOpen,
+    Menu, Home, Settings, Award, ChevronRight
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -24,10 +28,62 @@ interface CalorieInfo {
     meals: { name: string; calories: number; time: string }[];
 }
 
+// Circular Progress Component
+function CircularProgress({ 
+    percentage, 
+    size = 120, 
+    strokeWidth = 10, 
+    primaryColor, 
+    secondaryColor = '#e5e7eb',
+    children 
+}: { 
+    percentage: number; 
+    size?: number; 
+    strokeWidth?: number;
+    primaryColor: string;
+    secondaryColor?: string;
+    children?: React.ReactNode;
+}) {
+    const radius = (size - strokeWidth) / 2;
+    const circumference = radius * 2 * Math.PI;
+    const offset = circumference - (Math.min(percentage, 100) / 100) * circumference;
+
+    return (
+        <div className="relative" style={{ width: size, height: size }}>
+            <svg className="transform -rotate-90" width={size} height={size}>
+                <circle
+                    cx={size / 2}
+                    cy={size / 2}
+                    r={radius}
+                    fill="none"
+                    stroke={secondaryColor}
+                    strokeWidth={strokeWidth}
+                />
+                <circle
+                    cx={size / 2}
+                    cy={size / 2}
+                    r={radius}
+                    fill="none"
+                    stroke={primaryColor}
+                    strokeWidth={strokeWidth}
+                    strokeDasharray={circumference}
+                    strokeDashoffset={offset}
+                    strokeLinecap="round"
+                    className="transition-all duration-500"
+                />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                {children}
+            </div>
+        </div>
+    );
+}
+
 export default function Dashboard({ user, setUser, logout }: { user: any, setUser: (u: any) => void, logout: () => void }) {
     const navigate = useNavigate();
     const [medicineSummary, setMedicineSummary] = useState<MedicineSummary | null>(null);
     const [bmiInfo, setBmiInfo] = useState<BmiInfo | null>(null);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     
     // Use ref to track the latest user data for achievement counting
     const userRef = useRef(user);
@@ -134,11 +190,137 @@ export default function Dashboard({ user, setUser, logout }: { user: any, setUse
         }
     };
 
+    const getLevelInfo = () => {
+        const level = user.level || 'Bronze';
+        const points = user.points || 0;
+        
+        const levels = [
+            { name: 'Bronze', icon: '🥉', color: 'from-amber-600 to-amber-800', minPoints: 0 },
+            { name: 'Silver', icon: '🥈', color: 'from-gray-300 to-gray-500', minPoints: 500 },
+            { name: 'Gold', icon: '🥇', color: 'from-yellow-400 to-amber-500', minPoints: 1500 },
+            { name: 'Platinum', icon: '💎', color: 'from-cyan-300 to-blue-400', minPoints: 3500 },
+            { name: 'Diamond', icon: '✨', color: 'from-purple-400 to-pink-400', minPoints: 7500 },
+        ];
+        
+        const currentLevel = levels.find(l => l.name === level) || levels[0];
+        const nextLevel = levels.find(l => l.minPoints > points) || levels[levels.length - 1];
+        const progress = nextLevel.minPoints > 0 ? (points / nextLevel.minPoints) * 100 : 100;
+        
+        return { currentLevel, nextLevel, progress, points };
+    };
+
+    const levelInfo = getLevelInfo();
+    const calorieGoal = bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000;
+    const caloriePercentage = ((calorieInfo?.consumed || 0) / calorieGoal) * 100;
+    const medicinePercentage = medicineSummary ? (medicineSummary.takenDoses / Math.max(medicineSummary.totalDoses, 1)) * 100 : 0;
+    const hydrationPercentage = ((user.waterIntake || 0) / 8) * 100;
+
+    const menuItems = [
+        { name: 'Dashboard', icon: Home, path: '/dashboard', active: true },
+        { name: 'Your Profile', icon: User, path: '/profile' },
+        { name: 'Medicine Cabinet', icon: Pill, path: '/medicine' },
+        { name: 'MealMate', icon: Coffee, path: '/meals' },
+        { name: 'Hydration Tracker', icon: Droplets, path: '/hydration' },
+        { name: 'Mood Journal', icon: BookOpen, path: '/journal' },
+        { name: 'Achievements', icon: Trophy, path: '/badges' },
+        { name: 'Settings', icon: Settings, path: '/profile' },
+    ];
+
     return (
         <div className="min-h-screen bg-sage-50 font-sans">
+            {/* Side Panel Overlay */}
+            {sidebarOpen && (
+                <div 
+                    className="fixed inset-0 bg-black/50 z-40 transition-opacity"
+                    onClick={() => setSidebarOpen(false)}
+                />
+            )}
+
+            {/* Side Panel */}
+            <div className={`fixed top-0 left-0 h-full w-72 bg-white shadow-2xl z-50 transform transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                <div className="p-6">
+                    {/* Profile Section */}
+                    <div className="flex items-center gap-4 mb-8">
+                        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-sage-400 to-teal-500 flex items-center justify-center overflow-hidden shadow-lg">
+                            {user.profilePicture ? (
+                                <img src={user.profilePicture} alt="" className="w-full h-full object-cover" />
+                            ) : user.profileIcon ? (
+                                <span className="text-2xl">{user.profileIcon}</span>
+                            ) : (
+                                <User size={24} className="text-white" />
+                            )}
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="font-bold text-gray-800">{user.fullName || user.username}</h3>
+                            <p className="text-sm text-gray-500">@{user.username}</p>
+                        </div>
+                        <button 
+                            onClick={() => setSidebarOpen(false)}
+                            className="p-2 hover:bg-gray-100 rounded-lg"
+                        >
+                            <X size={20} className="text-gray-500" />
+                        </button>
+                    </div>
+
+                    {/* Level Badge */}
+                    <div className={`bg-gradient-to-r ${levelInfo.currentLevel.color} rounded-2xl p-4 text-white mb-6`}>
+                        <div className="flex items-center gap-3">
+                            <span className="text-3xl">{levelInfo.currentLevel.icon}</span>
+                            <div>
+                                <p className="font-bold">{levelInfo.currentLevel.name} Level</p>
+                                <p className="text-sm opacity-80">{levelInfo.points} points</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Menu Items */}
+                    <nav className="space-y-2">
+                        {menuItems.map((item) => (
+                            <button
+                                key={item.name}
+                                onClick={() => {
+                                    navigate(item.path);
+                                    setSidebarOpen(false);
+                                }}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                                    item.active 
+                                        ? 'bg-gradient-to-r from-sage-500 to-teal-500 text-white shadow-lg' 
+                                        : 'text-gray-700 hover:bg-gray-100'
+                                }`}
+                            >
+                                <item.icon size={20} />
+                                <span className="font-medium">{item.name}</span>
+                                <ChevronRight size={16} className="ml-auto opacity-50" />
+                            </button>
+                        ))}
+                    </nav>
+
+                    {/* Logout Button */}
+                    <button
+                        onClick={() => {
+                            setSidebarOpen(false);
+                            setShowLogoutConfirm(true);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition-all mt-6"
+                    >
+                        <LogOut size={20} />
+                        <span className="font-medium">Logout</span>
+                    </button>
+                </div>
+            </div>
+
+            {/* Top Navigation */}
             <nav className="bg-white shadow-sm p-4 px-8 flex justify-between items-center sticky top-0 z-10">
-                <div className="flex items-center gap-2 text-sage-500 font-bold text-xl cursor-pointer" onClick={() => navigate('/dashboard')}>
-                    <Activity /> MediMind
+                <div className="flex items-center gap-4">
+                    <button 
+                        onClick={() => setSidebarOpen(true)}
+                        className="p-2 hover:bg-gray-100 rounded-lg transition"
+                    >
+                        <Menu size={24} className="text-gray-700" />
+                    </button>
+                    <div className="flex items-center gap-2 text-sage-500 font-bold text-xl cursor-pointer" onClick={() => navigate('/dashboard')}>
+                        <Activity /> MediMind
+                    </div>
                 </div>
                 <div className="flex items-center gap-6">
                     <button onClick={() => navigate('/profile')} className="flex items-center gap-2 font-semibold text-gray-700 hover:text-sage-500">
@@ -195,59 +377,118 @@ export default function Dashboard({ user, setUser, logout }: { user: any, setUse
             )}
 
             <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
-                {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div onClick={() => navigate('/badges')} className="bg-gradient-to-br from-lavender-200 to-lavender-400 text-white p-6 rounded-2xl shadow-lg transform hover:scale-105 transition cursor-pointer">
-                        <div className="flex justify-between items-start">
-                            <div><p className="opacity-80 text-sm uppercase">Level</p><h2 className="text-3xl font-bold">{user.level}</h2></div>
-                            <Trophy className="opacity-80" size={32} />
-                        </div>
-                        <p className="text-xs mt-4 bg-white/20 inline-block px-2 rounded">{user.points} Points</p>
-                    </div>
-
-                    <div onClick={() => navigate('/hydration')} className="bg-gradient-to-br from-blue-400 to-cyan-500 text-white p-6 rounded-2xl shadow-lg transform hover:scale-105 hover:shadow-xl transition-all cursor-pointer">
-                        <div className="flex justify-between items-start">
-                            <div><p className="opacity-80 text-sm uppercase">Hydration</p><h2 className="text-3xl font-bold">{user.waterIntake}<span className="text-lg opacity-70"> / 8</span></h2></div>
-                            <Droplets className="opacity-80" size={32} />
-                        </div>
-                        <p className="text-xs mt-4 bg-white/20 inline-block px-2 rounded">glasses today</p>
-                    </div>
-
-                    <div onClick={() => setShowCaloriesModal(true)} className="bg-gradient-to-br from-orange-400 to-red-500 text-white p-6 rounded-2xl shadow-lg transform hover:scale-105 hover:shadow-xl transition-all cursor-pointer">
-                        <div className="flex justify-between items-start">
-                            <div><p className="opacity-80 text-sm uppercase">Calories</p><h2 className="text-3xl font-bold">{calorieInfo?.consumed || 0}<span className="text-lg opacity-70"> / {bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000}</span></h2></div>
-                            <Utensils className="opacity-80" size={32} />
-                        </div>
-                        {bmiInfo && (
-                            <p className="text-xs mt-4 bg-white/20 inline-block px-2 rounded">
-                                BMI: {bmiInfo.bmi.toFixed(1)} ({bmiInfo.category})
-                            </p>
-                        )}
-                    </div>
-
-                    <div onClick={() => navigate('/medicine')} className="bg-gradient-to-br from-emerald-400 to-green-600 text-white p-6 rounded-2xl shadow-lg transform hover:scale-105 hover:shadow-xl transition-all cursor-pointer">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <p className="opacity-80 text-sm uppercase">Medicine</p>
-                                {medicineSummary ? (
-                                    <h2 className="text-3xl font-bold">{medicineSummary.takenDoses}<span className="text-lg opacity-70"> / {medicineSummary.totalDoses}</span></h2>
-                                ) : (
-                                    <h2 className="text-3xl font-bold">--</h2>
-                                )}
+                {/* Achievement Card - First row */}
+                <div onClick={() => navigate('/badges')} className="bg-gradient-to-br from-amber-400 via-orange-400 to-amber-500 rounded-3xl shadow-xl p-6 cursor-pointer transform hover:scale-[1.02] transition-all">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-6">
+                            <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${levelInfo.currentLevel.color} flex items-center justify-center text-4xl shadow-lg`}>
+                                {levelInfo.currentLevel.icon}
                             </div>
-                            <Pill className="opacity-80" size={32} />
+                            <div className="text-white">
+                                <p className="text-sm opacity-80 uppercase tracking-wider">Achievements</p>
+                                <h2 className="text-3xl font-bold">{levelInfo.currentLevel.name}</h2>
+                                <p className="text-white/80 text-sm">{levelInfo.points} points • {user.streak || 0} day streak 🔥</p>
+                            </div>
                         </div>
-                        {medicineSummary ? (
-                            <p className="text-xs mt-4 bg-white/20 inline-block px-2 rounded">{medicineSummary.adherencePercentage}% taken today</p>
-                        ) : (
-                            <p className="text-xs mt-4 bg-white/20 inline-block px-2 rounded">Click to manage</p>
-                        )}
+                        <div className="flex items-center gap-4">
+                            <div className="text-right text-white">
+                                <p className="text-sm opacity-80">Next Level</p>
+                                <p className="font-bold">{levelInfo.nextLevel.name}</p>
+                                <p className="text-xs opacity-70">{levelInfo.nextLevel.minPoints - levelInfo.points} pts to go</p>
+                            </div>
+                            <Trophy className="text-white/80" size={40} />
+                        </div>
+                    </div>
+                    {/* Progress Bar */}
+                    <div className="mt-4">
+                        <div className="w-full bg-white/30 rounded-full h-2 overflow-hidden">
+                            <div 
+                                className="bg-white h-full rounded-full transition-all duration-500"
+                                style={{ width: `${Math.min(levelInfo.progress, 100)}%` }}
+                            />
+                        </div>
                     </div>
                 </div>
 
-                {/* Main Action Areas */}
+                {/* Stats Grid with Circular Charts */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {/* Hydration Card */}
+                    <div onClick={() => navigate('/hydration')} className="bg-white rounded-2xl shadow-lg p-6 cursor-pointer transform hover:scale-105 transition">
+                        <div className="flex flex-col items-center">
+                            <CircularProgress 
+                                percentage={hydrationPercentage} 
+                                primaryColor="#3b82f6"
+                                size={100}
+                                strokeWidth={8}
+                            >
+                                <Droplets className="text-blue-500" size={24} />
+                            </CircularProgress>
+                            <h3 className="mt-4 font-bold text-gray-800">Hydration</h3>
+                            <p className="text-2xl font-bold text-blue-600">{user.waterIntake || 0}<span className="text-sm text-gray-500"> / 8</span></p>
+                            <p className="text-xs text-gray-500">glasses today</p>
+                        </div>
+                    </div>
+
+                    {/* Calories Card */}
+                    <div onClick={() => setShowCaloriesModal(true)} className="bg-white rounded-2xl shadow-lg p-6 cursor-pointer transform hover:scale-105 transition">
+                        <div className="flex flex-col items-center">
+                            <CircularProgress 
+                                percentage={caloriePercentage} 
+                                primaryColor={caloriePercentage > 100 ? '#ef4444' : '#f97316'}
+                                size={100}
+                                strokeWidth={8}
+                            >
+                                <Utensils className="text-orange-500" size={24} />
+                            </CircularProgress>
+                            <h3 className="mt-4 font-bold text-gray-800">Calories</h3>
+                            <p className="text-2xl font-bold text-orange-600">{calorieInfo?.consumed || 0}<span className="text-sm text-gray-500"> / {calorieGoal}</span></p>
+                            <p className="text-xs text-gray-500">
+                                {bmiInfo ? `BMI: ${bmiInfo.bmi.toFixed(1)}` : 'kcal consumed'}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Medicine Card */}
+                    <div onClick={() => navigate('/medicine')} className="bg-white rounded-2xl shadow-lg p-6 cursor-pointer transform hover:scale-105 transition">
+                        <div className="flex flex-col items-center">
+                            <CircularProgress 
+                                percentage={medicinePercentage} 
+                                primaryColor="#10b981"
+                                size={100}
+                                strokeWidth={8}
+                            >
+                                <Pill className="text-emerald-500" size={24} />
+                            </CircularProgress>
+                            <h3 className="mt-4 font-bold text-gray-800">Medicine</h3>
+                            {medicineSummary ? (
+                                <>
+                                    <p className="text-2xl font-bold text-emerald-600">{medicineSummary.takenDoses}<span className="text-sm text-gray-500"> / {medicineSummary.totalDoses}</span></p>
+                                    <p className="text-xs text-gray-500">{medicineSummary.adherencePercentage}% taken</p>
+                                </>
+                            ) : (
+                                <>
+                                    <p className="text-2xl font-bold text-emerald-600">--</p>
+                                    <p className="text-xs text-gray-500">No medicines</p>
+                                </>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Mood Journal Card */}
+                    <div onClick={() => navigate('/journal')} className="bg-white rounded-2xl shadow-lg p-6 cursor-pointer transform hover:scale-105 transition">
+                        <div className="flex flex-col items-center">
+                            <div className="w-[100px] h-[100px] rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
+                                <BookOpen className="text-purple-500" size={36} />
+                            </div>
+                            <h3 className="mt-4 font-bold text-gray-800">Mood Journal</h3>
+                            <p className="text-2xl font-bold text-purple-600">{user.journalEntries || 0}</p>
+                            <p className="text-xs text-gray-500">entries written</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Quick Action Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    
                     {/* Meal Card */}
                     <div onClick={() => navigate('/meals')} className="bg-gradient-to-br from-amber-400 to-orange-500 text-white rounded-2xl shadow-lg p-6 cursor-pointer transform hover:scale-105 hover:shadow-xl transition-all flex flex-col justify-center text-center">
                         <Coffee className="mx-auto mb-4 opacity-90" size={48} />
@@ -325,34 +566,24 @@ export default function Dashboard({ user, setUser, logout }: { user: any, setUse
                             </button>
                         </div>
                         
-                        {/* Calorie Progress */}
-                        <div className="bg-gradient-to-r from-orange-100 to-amber-100 rounded-xl p-6 mb-6">
-                            <div className="flex items-center justify-between mb-4">
-                                <div>
-                                    <p className="text-sm text-gray-600">Today's Intake</p>
-                                    <p className="text-4xl font-bold text-orange-600">{calorieInfo?.consumed || 0}</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-sm text-gray-600">Daily Goal</p>
-                                    <p className="text-2xl font-bold text-gray-700">{bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000}</p>
-                                </div>
-                            </div>
-                            <div className="w-full bg-white/50 rounded-full h-4 overflow-hidden">
-                                <div 
-                                    className={`h-full transition-all rounded-full ${
-                                        ((calorieInfo?.consumed || 0) / (bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000)) > 1 
-                                            ? 'bg-red-500' 
-                                            : 'bg-gradient-to-r from-orange-400 to-amber-400'
-                                    }`}
-                                    style={{ width: `${Math.min(100, ((calorieInfo?.consumed || 0) / (bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000)) * 100)}%` }}
-                                />
-                            </div>
-                            <div className="flex justify-between mt-2 text-sm">
-                                <span className="text-gray-600">{((calorieInfo?.consumed || 0) / (bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000) * 100).toFixed(0)}% consumed</span>
-                                <span className={`font-medium ${(calorieInfo?.remaining || 0) < 0 ? 'text-red-500' : 'text-green-600'}`}>
-                                    {Math.abs((bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000) - (calorieInfo?.consumed || 0))} {(calorieInfo?.consumed || 0) > (bmiInfo?.recommendedCalories || user.dailyCalorieGoal || 2000) ? 'over' : 'remaining'}
-                                </span>
-                            </div>
+                        {/* Circular Progress */}
+                        <div className="flex justify-center mb-6">
+                            <CircularProgress 
+                                percentage={caloriePercentage} 
+                                primaryColor={caloriePercentage > 100 ? '#ef4444' : '#f97316'}
+                                size={160}
+                                strokeWidth={12}
+                            >
+                                <p className="text-3xl font-bold text-gray-800">{calorieInfo?.consumed || 0}</p>
+                                <p className="text-sm text-gray-500">of {calorieGoal}</p>
+                            </CircularProgress>
+                        </div>
+
+                        {/* Progress Info */}
+                        <div className="bg-gradient-to-r from-orange-100 to-amber-100 rounded-xl p-4 mb-6 text-center">
+                            <p className={`text-lg font-bold ${(calorieInfo?.consumed || 0) > calorieGoal ? 'text-red-600' : 'text-green-600'}`}>
+                                {Math.abs(calorieGoal - (calorieInfo?.consumed || 0))} calories {(calorieInfo?.consumed || 0) > calorieGoal ? 'over' : 'remaining'}
+                            </p>
                         </div>
 
                         {/* BMI & Weight Goals */}
@@ -427,27 +658,6 @@ export default function Dashboard({ user, setUser, logout }: { user: any, setUse
                                         </div>
                                     </div>
                                 )}
-                                
-                                {/* Healthy Range Info */}
-                                <div className="bg-gradient-to-r from-amber-50 via-yellow-50 to-orange-50 p-5 rounded-2xl border border-amber-200">
-                                    <p className="font-bold text-amber-700 mb-2 flex items-center gap-2">
-                                        <span className="text-xl">💡</span> Healthy Calorie Tips
-                                    </p>
-                                    <ul className="text-amber-700 text-sm space-y-2">
-                                        <li className="flex items-start gap-2">
-                                            <span className="bg-amber-200 rounded-full w-5 h-5 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">1</span>
-                                            Your recommended intake is based on your BMI and activity level
-                                        </li>
-                                        <li className="flex items-start gap-2">
-                                            <span className="bg-amber-200 rounded-full w-5 h-5 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">2</span>
-                                            Eat 200-500 fewer calories daily to lose ~0.5kg/week
-                                        </li>
-                                        <li className="flex items-start gap-2">
-                                            <span className="bg-amber-200 rounded-full w-5 h-5 flex items-center justify-center text-xs flex-shrink-0 mt-0.5">3</span>
-                                            Add 300-500 calories to gain muscle mass healthily
-                                        </li>
-                                    </ul>
-                                </div>
                             </div>
                         )}
 

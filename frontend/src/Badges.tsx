@@ -43,8 +43,8 @@ export default function Badges({ user, setUser }: { user: any, setUser: any }) {
         { id: 5, name: 'Diamond', icon: '✨', color: 'from-purple-400 to-pink-400', level: 'diamond', minPoints: 7500, unlocked: points >= 7500, description: 'Ultimate health champion' },
     ];
 
-    // More challenging achievements with tracking
-    const achievements: Achievement[] = [
+    // Achievements that track user progress
+    const getAchievements = (): Achievement[] => [
         { id: 1, name: 'Hydration Hero', icon: '💧', description: 'Log water 50 times', color: 'from-blue-400 to-cyan-400', requirement: 50, current: user.totalWaterLogs || 0, points: 100, category: 'water' },
         { id: 2, name: 'Meal Master', icon: '🍽️', description: 'Log 100 meals', color: 'from-orange-400 to-red-400', requirement: 100, current: user.totalMealsLogged || 0, points: 150, category: 'meals' },
         { id: 3, name: 'Profile Pro', icon: '👤', description: 'Complete all health profile fields', color: 'from-green-400 to-emerald-400', requirement: 10, current: calculateProfileCompletion(user), points: 75, category: 'profile' },
@@ -58,6 +58,8 @@ export default function Badges({ user, setUser }: { user: any, setUser: any }) {
         { id: 11, name: 'Health Scholar', icon: '📚', description: 'Write 25 journal entries', color: 'from-teal-400 to-cyan-400', requirement: 25, current: user.journalEntries || 0, points: 125, category: 'journal' },
         { id: 12, name: 'Consistency King', icon: '👑', description: 'Maintain 60-day streak', color: 'from-amber-400 to-yellow-500', requirement: 60, current: Math.min(dailyStreak.currentStreak, 60), points: 500, category: 'streak' },
     ];
+
+    const achievements = getAchievements();
 
     function calculateProfileCompletion(user: any): number {
         let completed = 0;
@@ -76,34 +78,46 @@ export default function Badges({ user, setUser }: { user: any, setUser: any }) {
 
     useEffect(() => {
         checkDailyStreak();
-    }, []);
+    }, [user.lastClaimDate, user.streak]);
 
     const checkDailyStreak = () => {
-        const today = new Date().toDateString();
-        const lastClaim = user.lastClaimDate ? new Date(user.lastClaimDate).toDateString() : null;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
         
-        const canClaim = lastClaim !== today;
-        
-        // Check if streak should be reset (more than 1 day since last claim)
         let currentStreak = user.streak || 0;
-        if (lastClaim) {
-            const lastClaimDate = new Date(user.lastClaimDate);
-            const daysSinceLastClaim = Math.floor((Date.now() - lastClaimDate.getTime()) / (1000 * 60 * 60 * 24));
-            if (daysSinceLastClaim > 1) {
+        let canClaim = true;
+        
+        if (user.lastClaimDate) {
+            const lastClaim = new Date(user.lastClaimDate);
+            lastClaim.setHours(0, 0, 0, 0);
+            
+            const diffTime = today.getTime() - lastClaim.getTime();
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 0) {
+                // Already claimed today
+                canClaim = false;
+            } else if (diffDays === 1) {
+                // Can claim today, streak continues
+                canClaim = true;
+            } else if (diffDays > 1) {
+                // Missed days, streak resets
                 currentStreak = 0;
+                canClaim = true;
             }
         }
 
-        // Calculate streak bonus
+        // Calculate streak bonus based on CURRENT streak (before claiming)
         let bonus = 5; // Base points
-        if (currentStreak >= 7) bonus = 15;
-        if (currentStreak >= 14) bonus = 25;
-        if (currentStreak >= 30) bonus = 50;
-        if (currentStreak >= 60) bonus = 100;
+        const nextStreak = currentStreak + 1;
+        if (nextStreak >= 60) bonus = 100;
+        else if (nextStreak >= 30) bonus = 50;
+        else if (nextStreak >= 14) bonus = 25;
+        else if (nextStreak >= 7) bonus = 15;
 
         setDailyStreak({
             currentStreak,
-            lastClaimDate: lastClaim,
+            lastClaimDate: user.lastClaimDate || null,
             canClaimToday: canClaim,
             streakBonus: bonus
         });
@@ -115,38 +129,41 @@ export default function Badges({ user, setUser }: { user: any, setUser: any }) {
         setShowClaimAnimation(true);
         
         const newStreak = dailyStreak.currentStreak + 1;
+        
+        // Calculate bonus based on new streak
         let bonus = 5;
-        if (newStreak >= 7) bonus = 15;
-        if (newStreak >= 14) bonus = 25;
-        if (newStreak >= 30) bonus = 50;
         if (newStreak >= 60) bonus = 100;
+        else if (newStreak >= 30) bonus = 50;
+        else if (newStreak >= 14) bonus = 25;
+        else if (newStreak >= 7) bonus = 15;
 
         const newPoints = points + bonus;
         const newLevel = calculateLevel(newPoints);
 
         try {
-            const res = await axios.put('/api/user/update', {
-                ...user,
+            const updateData = {
                 id: user.id,
                 points: newPoints,
                 level: newLevel,
                 streak: newStreak,
                 lastClaimDate: new Date().toISOString()
-            });
+            };
+
+            const res = await axios.put('/api/user/update', updateData);
             
             setPoints(newPoints);
             setLevel(newLevel);
             setDailyStreak({
-                ...dailyStreak,
                 currentStreak: newStreak,
                 canClaimToday: false,
-                lastClaimDate: new Date().toDateString(),
+                lastClaimDate: new Date().toISOString(),
                 streakBonus: bonus
             });
             
             // Update parent user state
-            setUser({ ...user, points: newPoints, level: newLevel, streak: newStreak, lastClaimDate: new Date().toISOString() });
-            localStorage.setItem('user', JSON.stringify({ ...user, points: newPoints, level: newLevel, streak: newStreak, lastClaimDate: new Date().toISOString() }));
+            const updatedUser = { ...user, ...res.data };
+            setUser(updatedUser);
+            localStorage.setItem('user', JSON.stringify(updatedUser));
 
             setTimeout(() => setShowClaimAnimation(false), 2000);
         } catch (err) {
@@ -175,6 +192,8 @@ export default function Badges({ user, setUser }: { user: any, setUser: any }) {
         return Math.min(100, Math.round((current / requirement) * 100));
     };
 
+    const completedAchievements = achievements.filter(a => a.current >= a.requirement).length;
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 p-6">
             <button 
@@ -185,7 +204,7 @@ export default function Badges({ user, setUser }: { user: any, setUser: any }) {
             </button>
 
             <div className="max-w-6xl mx-auto">
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent mb-2">🏆 Badges & Achievements</h1>
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent mb-2">🏆 Achievements</h1>
                 <p className="text-gray-600 mb-8">Earn badges and claim daily rewards on your health journey</p>
 
                 {/* Daily Streak Claim Section */}
@@ -213,7 +232,7 @@ export default function Badges({ user, setUser }: { user: any, setUser: any }) {
                                 </div>
                                 <div className="bg-white/20 px-4 py-2 rounded-xl">
                                     <p className="text-3xl font-bold">+{dailyStreak.streakBonus}</p>
-                                    <p className="text-xs text-white/80">Today's Bonus</p>
+                                    <p className="text-xs text-white/80">{dailyStreak.canClaimToday ? "Today's Bonus" : "Last Bonus"}</p>
                                 </div>
                             </div>
                         </div>
@@ -306,10 +325,36 @@ export default function Badges({ user, setUser }: { user: any, setUser: any }) {
                     </div>
                 </div>
 
+                {/* Stats Summary - MOVED HERE between level progression and achievements */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div className="bg-white rounded-2xl p-5 shadow-lg text-center border-2 border-yellow-200">
+                        <Star className="text-yellow-500 mx-auto mb-2" size={28} />
+                        <p className="text-gray-600 text-xs">Total Points</p>
+                        <p className="text-2xl font-bold text-gray-800">{points}</p>
+                    </div>
+                    <div className="bg-white rounded-2xl p-5 shadow-lg text-center border-2 border-purple-200">
+                        <Award className="text-purple-500 mx-auto mb-2" size={28} />
+                        <p className="text-gray-600 text-xs">Current Level</p>
+                        <p className="text-2xl font-bold text-gray-800">{level}</p>
+                    </div>
+                    <div className="bg-white rounded-2xl p-5 shadow-lg text-center border-2 border-red-200">
+                        <Flame className="text-red-500 mx-auto mb-2" size={28} />
+                        <p className="text-gray-600 text-xs">Day Streak</p>
+                        <p className="text-2xl font-bold text-gray-800">{dailyStreak.currentStreak}</p>
+                    </div>
+                    <div className="bg-white rounded-2xl p-5 shadow-lg text-center border-2 border-green-200">
+                        <Target className="text-green-500 mx-auto mb-2" size={28} />
+                        <p className="text-gray-600 text-xs">Achievements</p>
+                        <p className="text-2xl font-bold text-gray-800">
+                            {completedAchievements}/{achievements.length}
+                        </p>
+                    </div>
+                </div>
+
                 {/* Achievements with Progress */}
                 <div>
                     <h3 className="text-2xl font-bold text-amber-700 mb-4 flex items-center gap-2">
-                        <Target /> Achievements
+                        <Target /> Achievement Cards
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {achievements.map(achievement => {
@@ -410,32 +455,6 @@ export default function Badges({ user, setUser }: { user: any, setUser: any }) {
                         </div>
                     </div>
                 )}
-
-                {/* Stats Summary */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-                    <div className="bg-white rounded-2xl p-5 shadow-lg text-center border-2 border-yellow-200">
-                        <Star className="text-yellow-500 mx-auto mb-2" size={28} />
-                        <p className="text-gray-600 text-xs">Total Points</p>
-                        <p className="text-2xl font-bold text-gray-800">{points}</p>
-                    </div>
-                    <div className="bg-white rounded-2xl p-5 shadow-lg text-center border-2 border-purple-200">
-                        <Award className="text-purple-500 mx-auto mb-2" size={28} />
-                        <p className="text-gray-600 text-xs">Current Level</p>
-                        <p className="text-2xl font-bold text-gray-800">{level}</p>
-                    </div>
-                    <div className="bg-white rounded-2xl p-5 shadow-lg text-center border-2 border-red-200">
-                        <Flame className="text-red-500 mx-auto mb-2" size={28} />
-                        <p className="text-gray-600 text-xs">Day Streak</p>
-                        <p className="text-2xl font-bold text-gray-800">{dailyStreak.currentStreak}</p>
-                    </div>
-                    <div className="bg-white rounded-2xl p-5 shadow-lg text-center border-2 border-green-200">
-                        <Target className="text-green-500 mx-auto mb-2" size={28} />
-                        <p className="text-gray-600 text-xs">Achievements</p>
-                        <p className="text-2xl font-bold text-gray-800">
-                            {achievements.filter(a => a.current >= a.requirement).length}/{achievements.length}
-                        </p>
-                    </div>
-                </div>
             </div>
         </div>
     );
