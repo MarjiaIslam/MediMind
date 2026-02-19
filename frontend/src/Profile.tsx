@@ -407,7 +407,7 @@ export default function Profile({ user, setUser }: { user: any, setUser: any }) 
                     onClick={() => setActiveTab('journal')}
                     className={`px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 ${activeTab === 'journal' ? 'bg-gradient-to-r from-pink-500 to-orange-500 text-white shadow-lg' : 'bg-white text-gray-600 hover:bg-gray-100 shadow-md'}`}
                 >
-                    📔 Mood Journal
+                    📔 Journal
                 </button>
                 <button 
                     onClick={() => setActiveTab('settings')}
@@ -497,7 +497,7 @@ export default function Profile({ user, setUser }: { user: any, setUser: any }) 
                                     </div>
                                     <input 
                                         type="text"
-                                        placeholder="Or type custom conditions (comma-separated)"
+                                        placeholder="or any other chronic conditions (comma-separated)"
                                         value={formData.conditions || ''} 
                                         onChange={e=>setFormData({...formData, conditions: e.target.value})} 
                                         className="w-full p-3 border-2 border-rose-200 rounded-xl focus:border-rose-400 focus:ring-2 focus:ring-rose-200 focus:outline-none" 

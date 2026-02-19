@@ -243,7 +243,7 @@ export default function Journal({ user, setUser }: { user: any, setUser: (u: any
                             <BookOpen className="text-white" size={32} />
                         </div>
                         <div>
-                            <h1 className="text-3xl font-bold text-white">Mood Journal</h1>
+                            <h1 className="text-3xl font-bold text-white">Journal</h1>
                             <p className="text-white/80">Express yourself & track your emotional journey</p>
                         </div>
                     </div>

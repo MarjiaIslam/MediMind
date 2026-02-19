@@ -469,7 +469,7 @@ function getAchievementTip(achievement: Achievement): string {
         case 'medicine': return 'Take all your medicines at the scheduled times to earn perfect days!';
         case 'points': return 'Keep using the app daily to earn more points!';
         case 'goals': return 'Complete all daily health goals - water, meals, and medicine!';
-        case 'journal': return 'Write about your health journey in the Mood Journal!';
+        case 'journal': return 'Write about your health journey in the Journal!';
         case 'activity': return 'Log your activities at the right time of day!';
         default: return 'Keep using MediMind to progress towards this achievement!';
     }
