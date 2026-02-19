@@ -12,6 +12,17 @@ export default function Hydration({ user, setUser }: { user: any, setUser: any }
         userRef.current = user;
     }, [user]);
 
+    // Sync waterIntake state with user prop when navigating back
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            const parsedUser = JSON.parse(storedUser);
+            if (parsedUser.waterIntake !== undefined && parsedUser.waterIntake !== waterIntake) {
+                setWaterIntake(parsedUser.waterIntake);
+            }
+        }
+    }, []);
+
     const dailyGoal = 8; // 8 glasses minimum goal
     const maxDisplay = 16; // Max glasses for visual display
     const glassSize = 250; // ml per glass

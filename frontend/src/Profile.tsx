@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Settings, Trash2, Camera, User, Bell, LogOut, ChevronRight, Scale, Heart, Calendar, Search, Plus, X, Volume2, Lock, Eye, EyeOff, AlertCircle, Edit2, CheckCircle } from 'lucide-react';
 import { playRingtone, SoundType } from './utils/audioNotification';
 
@@ -35,6 +35,7 @@ const notificationSounds = [
 
 export default function Profile({ user, setUser }: { user: any, setUser: any }) {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [formData, setFormData] = useState(user);
     const [msg, setMsg] = useState('');
     const [showSettings, setShowSettings] = useState(false);
@@ -45,7 +46,11 @@ export default function Profile({ user, setUser }: { user: any, setUser: any }) 
     const [deleteError, setDeleteError] = useState('');
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [bmiInfo, setBmiInfo] = useState<BmiInfo | null>(null);
-    const [activeTab, setActiveTab] = useState<'profile' | 'journal' | 'settings'>('profile');
+    
+    // Read tab from URL query params, default to 'profile'
+    const tabFromUrl = searchParams.get('tab');
+    const initialTab = (tabFromUrl === 'settings' || tabFromUrl === 'journal') ? tabFromUrl : 'profile';
+    const [activeTab, setActiveTab] = useState<'profile' | 'journal' | 'settings'>(initialTab);
     
     // Username change states
     const [showUsernameChange, setShowUsernameChange] = useState(false);

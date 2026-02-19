@@ -2,10 +2,15 @@ import { useState, useEffect, useRef } from 'react';
 import { 
     Droplets, Activity, Trophy, Coffee, Utensils, Pill, User, Scale, Heart, X, 
     Target, TrendingDown, TrendingUp, Flame, LogOut, AlertTriangle, BookOpen,
-    Menu, Home, Settings, Award, ChevronRight
+    Menu, Home, Settings, Award, ChevronRight, Clock
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { 
+    playUrgentAlert, 
+    sendMedicineNotification, 
+    requestNotificationPermission 
+} from './utils/audioNotification';
 
 interface MedicineSummary {
     totalMedicines: number;
@@ -13,6 +18,17 @@ interface MedicineSummary {
     takenDoses: number;
     remainingDoses: number;
     adherencePercentage: number;
+}
+
+interface TodayMedicine {
+    medicineId: number;
+    medicineName: string;
+    dosage: string;
+    slot: number;
+    time: string;
+    taken: boolean;
+    daysRemaining: number;
+    takenAt?: string;
 }
 
 interface BmiInfo {
@@ -93,12 +109,28 @@ export default function Dashboard({ user, setUser, logout }: { user: any, setUse
     const [showCaloriesModal, setShowCaloriesModal] = useState(false);
     const [calorieInfo, setCalorieInfo] = useState<CalorieInfo | null>(null);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+    const [showMedicineModal, setShowMedicineModal] = useState(false);
+    const [todayMedicines, setTodayMedicines] = useState<TodayMedicine[]>([]);
+
+    // Track which reminders have already been notified
+    const notifiedReminders = useRef(new Set<string>());
 
     useEffect(() => {
         if (user?.id) {
             fetchMedicineSummary();
             fetchBmiInfo();
             fetchCalorieInfo();
+            fetchTodayMedicines();
+            
+            // Request notification permission
+            if ('Notification' in window && Notification.permission === 'default') {
+                requestNotificationPermission();
+            }
+            
+            // Check reminders every 30 seconds
+            checkMedicineReminders();
+            const interval = setInterval(checkMedicineReminders, 30000);
+            return () => clearInterval(interval);
         }
     }, [user?.id]);
 
@@ -178,6 +210,89 @@ export default function Dashboard({ user, setUser, logout }: { user: any, setUse
         }
     };
 
+    const fetchTodayMedicines = async () => {
+        try {
+            const res = await axios.get(`/api/medicine/today/${user.id}`);
+            setTodayMedicines(res.data);
+        } catch (err) {
+            console.error('Error fetching today medicines:', err);
+        }
+    };
+
+    const checkMedicineReminders = async () => {
+        try {
+            const res = await axios.get(`/api/medicine/reminders/${user.id}`);
+            const upcomingReminders = res.data as TodayMedicine[];
+            
+            const now = new Date();
+            const currentHours = now.getHours();
+            const currentMinutes = now.getMinutes();
+            
+            upcomingReminders.forEach((reminder: TodayMedicine) => {
+                if (!reminder.time) return;
+                
+                // Parse the scheduled time (HH:mm format)
+                const [schedHours, schedMinutes] = reminder.time.split(':').map(Number);
+                
+                // Check if current time is within 1 minute of scheduled time
+                const scheduledTotalMins = schedHours * 60 + schedMinutes;
+                const currentTotalMins = currentHours * 60 + currentMinutes;
+                const timeDiff = Math.abs(currentTotalMins - scheduledTotalMins);
+                
+                // Create unique key to prevent duplicate notifications
+                const reminderKey = `${reminder.medicineId}-${reminder.slot}-${now.toDateString()}`;
+                
+                // Only notify if within 1 minute window and not already notified
+                if (timeDiff <= 1 && !notifiedReminders.current.has(reminderKey)) {
+                    notifiedReminders.current.add(reminderKey);
+                    
+                    // Play sound alert
+                    playUrgentAlert();
+                    
+                    // Send browser notification
+                    if ('Notification' in window && Notification.permission === 'granted') {
+                        sendMedicineNotification(
+                            `💊 Time to take ${reminder.medicineName}!`,
+                            {
+                                body: `Dosage: ${reminder.dosage || 'As prescribed'}\nScheduled: ${formatTimeForDisplay(reminder.time)}`,
+                                playSound: true
+                            }
+                        );
+                    }
+                }
+            });
+        } catch (err) {
+            console.error('Error checking reminders:', err);
+        }
+    };
+
+    const formatTimeForDisplay = (time: string): string => {
+        if (!time) return '';
+        const [hours, minutes] = time.split(':').map(Number);
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const displayHours = hours % 12 || 12;
+        return `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+    };
+
+    const getNextMedicineTime = (): string => {
+        const now = new Date();
+        const currentTotalMins = now.getHours() * 60 + now.getMinutes();
+        
+        const upcomingMeds = todayMedicines
+            .filter(med => !med.taken && med.time)
+            .map(med => {
+                const [hours, minutes] = med.time.split(':').map(Number);
+                return { ...med, totalMins: hours * 60 + minutes };
+            })
+            .filter(med => med.totalMins > currentTotalMins)
+            .sort((a, b) => a.totalMins - b.totalMins);
+        
+        if (upcomingMeds.length > 0) {
+            return `${upcomingMeds[0].medicineName} at ${formatTimeForDisplay(upcomingMeds[0].time)}`;
+        }
+        return 'No more medicines today';
+    };
+
     if (!user) return <div className="p-10 text-sage-500">Loading...</div>;
 
     const getBmiColor = (category: string) => {
@@ -223,7 +338,7 @@ export default function Dashboard({ user, setUser, logout }: { user: any, setUse
         { name: 'Hydration Tracker', icon: Droplets, path: '/hydration' },
         { name: 'Mood Journal', icon: BookOpen, path: '/journal' },
         { name: 'Achievements', icon: Trophy, path: '/badges' },
-        { name: 'Settings', icon: Settings, path: '/profile' },
+        { name: 'Settings', icon: Settings, path: '/profile?tab=settings' },
     ];
 
     return (
@@ -449,7 +564,7 @@ export default function Dashboard({ user, setUser, logout }: { user: any, setUse
                     </div>
 
                     {/* Medicine Card */}
-                    <div onClick={() => navigate('/medicine')} className="bg-white rounded-2xl shadow-lg p-6 cursor-pointer transform hover:scale-105 transition">
+                    <div onClick={() => setShowMedicineModal(true)} className="bg-white rounded-2xl shadow-lg p-6 cursor-pointer transform hover:scale-105 transition">
                         <div className="flex flex-col items-center">
                             <CircularProgress 
                                 percentage={medicinePercentage} 
@@ -660,12 +775,97 @@ export default function Dashboard({ user, setUser, logout }: { user: any, setUse
                                 )}
                             </div>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* Medicine Detail Modal */}
+            {showMedicineModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto animate-bounce-in">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-bold text-emerald-600 flex items-center gap-2">
+                                <Pill /> Today's Medicines
+                            </h2>
+                            <button onClick={() => setShowMedicineModal(false)} className="text-gray-400 hover:text-gray-600">
+                                <X size={24} />
+                            </button>
+                        </div>
+                        
+                        {/* Circular Progress */}
+                        <div className="flex justify-center mb-6">
+                            <CircularProgress 
+                                percentage={medicinePercentage} 
+                                primaryColor="#10b981"
+                                size={160}
+                                strokeWidth={12}
+                            >
+                                <p className="text-3xl font-bold text-gray-800">{medicineSummary?.takenDoses || 0}</p>
+                                <p className="text-sm text-gray-500">of {medicineSummary?.totalDoses || 0}</p>
+                            </CircularProgress>
+                        </div>
+
+                        {/* Medicine Stats */}
+                        <div className="grid grid-cols-2 gap-4 mb-6">
+                            <div className="bg-gradient-to-br from-emerald-100 to-teal-100 p-5 rounded-2xl text-center border border-emerald-200">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-emerald-400 to-teal-400 flex items-center justify-center mx-auto mb-2">
+                                    <span className="text-white text-lg">✓</span>
+                                </div>
+                                <p className="text-3xl font-bold text-emerald-600">{medicineSummary?.takenDoses || 0}</p>
+                                <p className="text-sm text-gray-600 mt-1">Taken Today</p>
+                            </div>
+                            <div className="bg-gradient-to-br from-amber-100 to-orange-100 p-5 rounded-2xl text-center border border-amber-200">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-amber-400 to-orange-400 flex items-center justify-center mx-auto mb-2">
+                                    <Clock size={20} className="text-white" />
+                                </div>
+                                <p className="text-3xl font-bold text-amber-600">{medicineSummary?.remainingDoses || 0}</p>
+                                <p className="text-sm text-gray-600 mt-1">Remaining</p>
+                            </div>
+                        </div>
+
+                        {/* Next Medicine Time */}
+                        <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 p-5 rounded-2xl border border-blue-200 mb-6">
+                            <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-400 to-indigo-400 flex items-center justify-center">
+                                    <Clock size={20} className="text-white" />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-600">Next Medicine</p>
+                                    <p className="font-bold text-gray-800">{getNextMedicineTime()}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Today's Schedule */}
+                        {todayMedicines.length > 0 && (
+                            <div>
+                                <h3 className="font-bold text-gray-700 mb-3">Today's Schedule</h3>
+                                <div className="space-y-2 max-h-48 overflow-y-auto">
+                                    {todayMedicines.map((med, idx) => (
+                                        <div key={idx} className={`flex items-center justify-between p-3 rounded-xl ${med.taken ? 'bg-green-50 border border-green-200' : 'bg-gray-50 border border-gray-200'}`}>
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${med.taken ? 'bg-green-400' : 'bg-gray-300'}`}>
+                                                    {med.taken ? <span className="text-white text-sm">✓</span> : <Pill size={14} className="text-white" />}
+                                                </div>
+                                                <div>
+                                                    <p className={`font-medium ${med.taken ? 'text-green-700' : 'text-gray-700'}`}>{med.medicineName}</p>
+                                                    <p className="text-xs text-gray-500">{med.dosage}</p>
+                                                </div>
+                                            </div>
+                                            <span className={`text-sm font-medium ${med.taken ? 'text-green-600' : 'text-gray-600'}`}>
+                                                {formatTimeForDisplay(med.time)}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         <button 
-                            onClick={() => { setShowCaloriesModal(false); navigate('/meals'); }}
-                            className="w-full bg-gradient-to-r from-orange-400 to-amber-400 text-white py-3 rounded-xl font-semibold hover:from-orange-500 hover:to-amber-500"
+                            onClick={() => { setShowMedicineModal(false); navigate('/medicine'); }}
+                            className="w-full mt-6 bg-gradient-to-r from-emerald-400 to-teal-400 text-white py-3 rounded-xl font-semibold hover:from-emerald-500 hover:to-teal-500"
                         >
-                            Log a Meal
+                            Go to Medicine Cabinet
                         </button>
                     </div>
                 </div>
