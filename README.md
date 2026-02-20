@@ -100,9 +100,9 @@ This project demonstrates key software engineering concepts:
 
 | Component | Thread Concept | Location |
 |-----------|---------------|----------|
-| Medicine Reminder Check | `@Scheduled(cron)` - Runs every minute | `BackgroundTaskService.java` |
-| Daily Medicine Reset | `@Scheduled(cron)` - Runs at midnight | `BackgroundTaskService.java` |
-| Health Summary Calculator | `@Scheduled(cron)` - Runs at 6 AM | `BackgroundTaskService.java` |
+| Medicine Reminder Check | `@Scheduled(cron)`| `BackgroundTaskService.java` |
+| Daily Medicine Reset | `@Scheduled(cron)` | `BackgroundTaskService.java` |
+| Health Summary Calculator | `@Scheduled(cron)`| `BackgroundTaskService.java` |
 | Adherence Calculator | `@Async` + `CompletableFuture` | `BackgroundTaskService.java` |
 | Meal Processing | `@Async` + `CompletableFuture` | `BackgroundTaskService.java` |
 | Parallel Medicine Checks | `ExecutorService` thread pool | `BackgroundTaskService.java` |
